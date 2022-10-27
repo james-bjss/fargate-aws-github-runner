@@ -22,9 +22,6 @@ RUN chown -R github ~github && actions-runner/bin/installdependencies.sh
 COPY scripts/entrypoint.sh entrypoint.sh
 RUN chmod +x entrypoint.sh
 
-# # since the config and run script for actions are not allowed to be run by root,
-# # set the user to "github" so all subsequent commands are run as the github user
 USER github
 
-# set the entrypoint to the entrypoint.sh script
 ENTRYPOINT ["./entrypoint.sh"]
