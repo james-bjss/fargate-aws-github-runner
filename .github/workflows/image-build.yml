@@ -38,7 +38,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          file: images/ubuntu-jammy/Dockerfile
+          context: images/ubuntu-jammy/
           push: true
           platforms: 'linux/amd64,linux/arm64'
           tags: gh-agent/ubuntu:latest
