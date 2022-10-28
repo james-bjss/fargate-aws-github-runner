@@ -10,6 +10,10 @@ jobs:
   build_images:
     name: Build Runner Images    
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
     steps:
       - name: "Checkout"
         uses: actions/checkout@v3
@@ -20,3 +24,21 @@ jobs:
       - name: "Build Image"
         run: docker buildx build --platform linux/amd64,linux/arm64 images/ubuntu-jammy/  
 
+      - name: Configure AWS credentials from Test account
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: arn:aws:iam::460463385388:role/GitHubPushArtifacts
+          role-session-name: GitHubPushArtifactsSession
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          file: images/ubuntu-jammy/Dockerfile
+          push: true
+          platforms: 'linux/amd64,linux/arm64'
+          tags: gh-agent/ubuntu:latest
