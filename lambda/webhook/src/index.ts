@@ -62,7 +62,16 @@ export const handler = async (
   }
 
   const workflowEvent: WorkflowJobEvent = JSON.parse(event.body);
-  console.log({ workflowEvent });
+
+  // Ignore unless the job is being queued
+  logger.debug(`Ignoring Event Action`);
+  if (workflowEvent.action !== 'queued') {
+    return {
+      statusCode: 201,
+      body: '',
+    };
+  }
+
   const actionMessage: ActionRequestMessage = {
     id: workflowEvent.workflow_job.id,
     eventType: event.headers['x-github-event'],
@@ -71,12 +80,28 @@ export const handler = async (
     installationId: workflowEvent.installation?.id || -1,
     labels: workflowEvent.workflow_job.labels || [],
   };
-  sendActionRequest(actionMessage);
 
+  try {
+    await sendActionRequest(actionMessage);
+    logger.info(
+      `Successfully queued job for: ${workflowEvent.repository.full_name}`
+    );
+  } catch (err) {
+    logger.error(
+      `Failed to queue job for: ${workflowEvent.repository.full_name}`,
+      err
+    );
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        message: 'Failed to queue job',
+      }),
+    };
+  }
+
+  // Success
   return {
     statusCode: 200,
-    body: JSON.stringify({
-      message: JSON.stringify(event.body),
-    }),
+    body: '',
   };
 };

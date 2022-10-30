@@ -56,7 +56,7 @@ describe('Webhook', () => {
     jest.restoreAllMocks();
   });
 
-  it('Handler Test', async () => {
+  it('Valid Events Are Queued', async () => {
     const event = await createSignedEvent(
       workflowjob_event,
       'workflow_job',
@@ -69,8 +69,23 @@ describe('Webhook', () => {
     expect(reponse.statusCode).toBe(200);
   });
 
+  it('Message is Ignored if action is completed', async () => {
+    const completedJobEvent = workflowjob_event;
+    completedJobEvent.action = `completed`;
+    const event = await createSignedEvent(
+      completedJobEvent,
+      'workflow_job',
+      secret
+    );
+
+    const reponse = await handler(event);
+    expect(sqsMock).toHaveReceivedCommandTimes(SendMessageCommand, 0);
+    expect(reponse.statusCode).toBe(201);
+  });
+
   it('Rejects Unsupported Event Types', async () => {
     const event = await createSignedEvent({}, 'push', secret);
+
     const reponse = await handler(event);
     expect(reponse.statusCode).toBe(422);
   });
@@ -89,6 +104,7 @@ describe('Webhook', () => {
     const event = mock<APIGatewayEvent>();
     event.body = JSON.stringify(workflowjob_event);
     event.headers['x-github-event'] = 'workflow_job';
+
     const reponse = await handler(event);
     expect(reponse.statusCode).toBe(401);
   });
