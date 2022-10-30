@@ -1,15 +1,17 @@
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SSM } from '@aws-sdk/client-ssm';
-import { SSMCache } from './ssm/cache';
 import { Webhooks } from '@octokit/webhooks';
+import { WorkflowJobEvent } from '@octokit/webhooks-types';
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
+import config from './config';
+import { ActionRequestMessage, sendActionRequest } from './sqs';
+import { SSMCache } from './ssm/cache';
 
 const logger = new Logger({ serviceName: 'gitHubWebHook' });
 const client = new SSM({ region: process.env.AWS_REGION });
-const secretCache = new SSMCache(client);
+const secretCache = new SSMCache(client, config.secretTtl);
 
 const supportedEvents = ['check_run', 'workflow_job'];
-const secretKey = '/gh_action/webhook_secret';
 
 export const handler = async (
   event: APIGatewayEvent
@@ -27,7 +29,7 @@ export const handler = async (
   }
 
   // Fetch secret Key from SSM and configure validator
-  const secret = await secretCache.getSecretValue(secretKey);
+  const secret = await secretCache.getSecretValue(config.ssmkey);
   const webhooks = new Webhooks({
     secret: secret,
   });
@@ -35,7 +37,7 @@ export const handler = async (
   // Check request is signed with correct secret
   if (!signature || !(await webhooks.verify(event.body, signature))) {
     logger.warn(
-      'Unauthorized. Missing Signature. Check the webhook secret is configured correctly.'
+      'Unauthorized. Missing Or Invalid Signature. Check the webhook secret is configured correctly.'
     );
     return {
       statusCode: 401,
@@ -58,6 +60,18 @@ export const handler = async (
       }),
     };
   }
+
+  const workflowEvent: WorkflowJobEvent = JSON.parse(event.body);
+  console.log({ workflowEvent });
+  const actionMessage: ActionRequestMessage = {
+    id: workflowEvent.workflow_job.id,
+    eventType: event.headers['x-github-event'],
+    repositoryName: workflowEvent.repository.name,
+    repositoryOwner: workflowEvent.repository.owner.name,
+    installationId: workflowEvent.installation?.id || -1,
+    labels: workflowEvent.workflow_job.labels || [],
+  };
+  sendActionRequest(actionMessage);
 
   return {
     statusCode: 200,

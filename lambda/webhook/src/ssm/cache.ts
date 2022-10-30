@@ -1,11 +1,15 @@
-import { GetParameterCommandOutput, SSM } from '@aws-sdk/client-ssm';
+import {
+  GetParameterCommand,
+  GetParameterCommandOutput,
+  SSMClient,
+} from '@aws-sdk/client-ssm';
 
 export class SSMCache {
-  private client: SSM;
+  private client: SSMClient;
   private ttl: number;
   private cache: Record<string, Secret> = {};
 
-  constructor(client: SSM, ttl: number = 0) {
+  constructor(client: SSMClient, ttl: number = 0) {
     this.client = client;
     this.ttl = ttl;
   }
@@ -14,10 +18,12 @@ export class SSMCache {
     if (!this.cache[secretKey] || this.isExpired(this.cache[secretKey])) {
       let response: GetParameterCommandOutput;
       try {
-        response = await this.client.getParameter({
-          Name: secretKey,
-          WithDecryption: true,
-        });
+        response = await this.client.send(
+          new GetParameterCommand({
+            Name: secretKey,
+            WithDecryption: true,
+          })
+        );
       } catch (err) {
         throw new Error('Failed to Fetch SSM Secret');
       }
