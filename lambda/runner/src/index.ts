@@ -8,6 +8,8 @@ export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
     return { batchItemFailures: [] };
   }
 
+  // In theory we could batch creation of the runners however we would lose flexibility on tagging
+  // All launched tasks would share the same tags
   for (const message of event.Records) {
     try {
       //process message
