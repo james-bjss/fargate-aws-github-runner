@@ -70,7 +70,7 @@ describe('Webhook', () => {
   });
 
   it('Message is Ignored if action is completed', async () => {
-    const completedJobEvent = workflowjob_event;
+    const completedJobEvent = JSON.parse(JSON.stringify(workflowjob_event));
     completedJobEvent.action = `completed`;
     const event = await createSignedEvent(
       completedJobEvent,
@@ -107,6 +107,21 @@ describe('Webhook', () => {
 
     const reponse = await handler(event);
     expect(reponse.statusCode).toBe(401);
+  });
+
+  it('Should Fail if Message I Unable to Be Queued', async () => {
+    sqsMock.reset();
+    sqsMock.on(SendMessageCommand).rejects({});
+    const event = await createSignedEvent(
+      workflowjob_event,
+      'workflow_job',
+      secret
+    );
+
+    const reponse = await handler(event);
+    expect(ssmMock).toHaveReceivedCommandTimes(GetParameterCommand, 1);
+    expect(sqsMock).toHaveReceivedCommandTimes(SendMessageCommand, 1);
+    expect(reponse.statusCode).toBe(500);
   });
 });
 
