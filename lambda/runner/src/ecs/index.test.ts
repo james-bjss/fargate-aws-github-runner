@@ -3,12 +3,30 @@ import {
   ListTagsForResourceCommand,
   ListTaskDefinitionsCommand,
   ListTaskDefinitionsCommandOutput,
+  RunTaskCommand,
 } from '@aws-sdk/client-ecs';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { getMatchingTaskDefinitionForFamily, startRunner } from '.';
 
 const ecsMock = mockClient(ECSClient);
+
+// Mock lambda config
+jest.mock('../config', () => {
+  const config = {
+    ecsCluster: 'testcluster',
+    ecsSubnets: ['sn-1', 'sn-2'],
+    ecsSecurityGroups: ['sg-1', 'sg-2'],
+    ecsFamilyPrefix: 'gh_',
+    ecsLabelsKey: 'GH:labels',
+  };
+
+  return {
+    __esModule: true,
+    config,
+    default: config,
+  };
+});
 
 const listTaskDefinitionsResponse: ListTaskDefinitionsCommandOutput = {
   $metadata: null,
@@ -43,6 +61,11 @@ describe('ECS', () => {
 
     jest.resetModules();
   });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
+
   it('Should Match Family and Labels', async () => {
     const definition = await getMatchingTaskDefinitionForFamily('gh_linux', [
       'linux',
@@ -71,28 +94,28 @@ describe('ECS', () => {
   });
 
   it('Should Not Match Empty Tags', async () => {
-    const definition = await getMatchingTaskDefinitionForFamily('gh_linux', [
-      'linux',
-      'x86',
-      'invalidtag',
-    ]);
+    const definition = await getMatchingTaskDefinitionForFamily('gh_linux', []);
     expect(definition).toBeUndefined;
   });
 
-  it.only('Should Run Task', async () => {
+  it('Should Run Task', async () => {
     ecsMock.reset();
-    ecsMock.rejects('blah');
+    ecsMock.on(RunTaskCommand).resolves({ failures: [] });
 
-    let result;
-    try {
-      result = await startRunner(
+    await startRunner(
+      'arn:aws:ecs:us-east-1:012345678910:task-definition/gh_linux:4'
+    );
+    expect(ecsMock).toHaveReceivedCommandTimes(RunTaskCommand, 1);
+  });
+
+  it('Should Throw If RunTask Fails', async () => {
+    ecsMock.reset();
+    ecsMock.on(RunTaskCommand).rejects();
+
+    await expect(
+      startRunner(
         'arn:aws:ecs:us-east-1:012345678910:task-definition/gh_linux:4'
-      );
-    } catch (err) {
-      console.log({ err });
-    } finally {
-      await expect(result).rejects.toThrow();
-    }
-    // expect(ecsMock).toHaveReceivedCommandTimes(RunTaskCommand, 1);
+      )
+    ).rejects.toThrow();
   });
 });

@@ -8,11 +8,10 @@ import {
   paginateListTaskDefinitions,
   RunTaskCommand,
   RunTaskCommandInput,
-  RunTaskCommandOutput,
 } from '@aws-sdk/client-ecs';
 import config from '../config';
 
-const client = new ECSClient({ region: process.env.AWS_REGION });
+const client = new ECSClient({ region: 'process.env.AWS_REGION' });
 
 export const getMatchingTaskDefinition = async (
   familyPrefix: string,
@@ -66,9 +65,7 @@ export const getMatchingTaskDefinitionForFamily = async (
   return matchedArn;
 };
 
-export const startRunner = async (
-  taskDefinitionArn: string
-): Promise<RunTaskCommandOutput> => {
+export const startRunner = async (taskDefinitionArn: string): Promise<void> => {
   const command: RunTaskCommandInput = {
     taskDefinition: taskDefinitionArn,
     cluster: config.ecsCluster,
@@ -82,7 +79,8 @@ export const startRunner = async (
       },
     },
   };
-  return client.send(new RunTaskCommand(command));
+
+  await client.send(new RunTaskCommand(command));
 };
 
 async function getLabelsforTaskDefinition(
