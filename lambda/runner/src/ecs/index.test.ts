@@ -1,6 +1,7 @@
 import {
   ECSClient,
   ListTagsForResourceCommand,
+  ListTaskDefinitionFamiliesCommand,
   ListTaskDefinitionsCommand,
   ListTaskDefinitionsCommandOutput,
   RunTaskCommand,
@@ -57,6 +58,11 @@ describe('ECS', () => {
             value: 'linux,x86',
           },
         ],
+      })
+      .on(ListTaskDefinitionFamiliesCommand)
+      .resolves({
+        families: ['gh_linux'],
+        nextToken: null,
       });
 
     jest.resetModules();

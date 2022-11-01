@@ -22,11 +22,13 @@ export const getMatchingTaskDefinition = async (
   };
 
   let families: string[] = [];
-  for await (const data of await paginateListTaskDefinitionFamilies(
+  for await (const data of paginateListTaskDefinitionFamilies(
     { client },
     command
   )) {
-    families = [...families, ...data.families];
+    if (data?.families && data.families.length > 0) {
+      families = [...families, ...(data.families || [])];
+    }
   }
 
   for (let family in families) {

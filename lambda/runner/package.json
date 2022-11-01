@@ -25,8 +25,8 @@
   "devDependencies": {
     "@octokit/webhooks-types": "^6.7.0",
     "@types/aws-lambda": "^8.10.108",
-    "@types/jest": "^29.2.0",
-    "@types/node": "^18.11.7",
+    "@types/jest": "^29.2.1",
+    "@types/node": "^18.11.9",
     "aws-sdk-client-mock": "^2.0.0",
     "aws-sdk-client-mock-jest": "^2.0.0",
     "aws-sdk-mock": "^5.8.0",
@@ -48,8 +48,8 @@
   },
   "dependencies": {
     "@aws-lambda-powertools/logger": "^1.4.0",
-    "@aws-sdk/client-ecs": "^3.199.0",
-    "@aws-sdk/client-ssm": "^3.199.0",
+    "@aws-sdk/client-ecs": "^3.200.0",
+    "@aws-sdk/client-ssm": "^3.200.0",
     "@octokit/webhooks": "^10.3.1",
     "uninstall": "^0.0.0"
   }

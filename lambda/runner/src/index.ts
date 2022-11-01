@@ -1,4 +1,6 @@
 import { SQSBatchItemFailure, SQSBatchResponse, SQSEvent } from 'aws-lambda';
+import config from './config';
+import { getMatchingTaskDefinition } from './ecs';
 
 export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
   let messageId = '';
@@ -14,6 +16,8 @@ export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
     try {
       //process message
       messageId = message.messageId;
+      const payload = JSON.parse(message.body);
+      getMatchingTaskDefinition(config.ecsFamilyPrefix, payload.labels);
     } catch (err) {
       //Add failures to list to return
       batchItemFailures.push({ itemIdentifier: messageId });
