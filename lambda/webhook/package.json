@@ -7,7 +7,7 @@
     "test:ci": "jest --ci --coverage --coverageReporters=cobertura",
     "build": "webpack --progress",
     "pretty-quick": "pretty-quick",
-    "zip:lambda": "cd dist/${LAMBDA} && zip index.zip index.js",
+    "zip:lambda": "cd dist/ && zip webhook.zip index.js index.js.map",
     "prepare": "cd ../../ && husky install && chmod ug+x .husky/*",
     "prettier-all": "npx prettier --write .",
     "lint": "eslint src/**/*.ts --fix"
