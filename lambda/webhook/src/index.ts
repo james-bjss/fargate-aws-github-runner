@@ -16,6 +16,10 @@ const supportedEvents = ['check_run', 'workflow_job'];
 export const handler = async (
   event: APIGatewayEvent
 ): Promise<APIGatewayProxyResult> => {
+  for (const key in event.headers) {
+    event.headers[key.toLowerCase()] = event.headers[key];
+  }
+
   const signature = event.headers['x-hub-signature-256'];
 
   if (!event.body) {
@@ -33,6 +37,8 @@ export const handler = async (
   const webhooks = new Webhooks({
     secret: secret,
   });
+  logger.debug(`body:${event.body}`);
+  logger.debug(`header:${signature}`);
 
   // Check request is signed with correct secret
   if (!signature || !(await webhooks.verify(event.body, signature))) {

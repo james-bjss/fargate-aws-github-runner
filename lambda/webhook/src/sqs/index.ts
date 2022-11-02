@@ -19,8 +19,10 @@ export const sendActionRequest = async (
   message: ActionRequestMessage
 ): Promise<void> => {
   const sqsMessage = new SendMessageCommand({
+    MessageGroupId: message.id.toString(),
     QueueUrl: config.sqsUrl,
     MessageBody: JSON.stringify(message),
+    MessageDeduplicationId: message.id.toString(),
   });
 
   await sqsClient.send(sqsMessage);

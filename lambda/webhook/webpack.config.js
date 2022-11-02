@@ -22,6 +22,12 @@ module.exports = {
         use: ['ts-loader'],
         exclude: /node_modules/,
       },
+      {
+        test: /node_modules\/@octokit\/webhooks(-methods)?/,
+        resolve: {
+          mainFields: ['main'],
+        },
+      },
     ],
   },
   resolve: {
