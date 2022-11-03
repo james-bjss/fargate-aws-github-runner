@@ -3,8 +3,8 @@ data "aws_region" "current" {}
 
 locals {
   runnerpath = "../../lambda/runner/dist/runner.zip"
-  accountid = data.aws_caller_identity.current.account_id
-  region = data.aws_region.current.name
+  accountid  = data.aws_caller_identity.current.account_id
+  region     = data.aws_region.current.name
 }
 
 resource "aws_lambda_function" "runner" {
@@ -24,6 +24,7 @@ resource "aws_lambda_function" "runner" {
       ECS_CLUSTER         = module.ecs.cluster_name
       ECS_SUBNETS         = join(",", module.vpc.private_subnets)
       ECS_SECURITY_GROUPS = aws_security_group.default_runner_group.id
+      ECS_FAMILY_PREFIX   = "gh_"
     }
   }
 }
@@ -103,7 +104,7 @@ resource "aws_iam_role_policy" "runner_ecs" {
       {
         "Effect" : "Allow",
         "Action" : [
-          "ecs:RunTask"
+          "ecs:RunTask",
         ],
         "Condition" : {
           "ArnEquals" : {
@@ -113,6 +114,20 @@ resource "aws_iam_role_policy" "runner_ecs" {
         "Resource" : [
           "arn:aws:ecs:${local.region}:${local.accountid}:task-definition/gh_*"
         ]
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "ecs:RunTask", "ecs:ListTagsForResource",
+        ],
+        "Resource" : [
+          "arn:aws:ecs:${local.region}:${local.accountid}:task-definition/gh_*"
+        ]
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : ["iam:PassRole"],
+        "Resource" : [aws_iam_role.ecsTaskExecutionRole.arn]
       }
     ]
   })
