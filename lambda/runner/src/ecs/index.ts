@@ -11,12 +11,12 @@ import {
 } from '@aws-sdk/client-ecs';
 import config from '../config';
 
-const client = new ECSClient({ region: 'process.env.AWS_REGION' });
+const client = new ECSClient({ region: process.env.AWS_REGION });
 
 export const getMatchingTaskDefinition = async (
   familyPrefix: string,
   labels: string[]
-): Promise<string | undefined> => {
+): Promise<string> => {
   const command: ListTaskDefinitionFamiliesCommandInput = {
     familyPrefix: familyPrefix,
   };
@@ -37,7 +37,7 @@ export const getMatchingTaskDefinition = async (
       return matchedArn;
     }
   }
-  return undefined;
+  return '';
 };
 
 export const getMatchingTaskDefinitionForFamily = async (
@@ -95,5 +95,5 @@ async function getLabelsforTaskDefinition(
   const tags = response.tags.find(
     (tag) => tag.key === config.ecsLabelsKey
   ).value;
-  return tags.split(',');
+  return tags.split(' ');
 }

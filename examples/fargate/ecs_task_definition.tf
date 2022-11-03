@@ -10,4 +10,7 @@ resource "aws_ecs_task_definition" "service" {
       portMappings = []
     }
   ])
+  tags = {
+    "GH:labels" = "linux x86"
+  }
 }

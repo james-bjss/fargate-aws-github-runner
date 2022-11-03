@@ -1,6 +1,9 @@
+import { Logger } from '@aws-lambda-powertools/logger';
 import { SQSBatchItemFailure, SQSBatchResponse, SQSEvent } from 'aws-lambda';
 import config from './config';
-import { getMatchingTaskDefinition } from './ecs';
+import { getMatchingTaskDefinition, startRunner } from './ecs';
+
+const logger = new Logger({ serviceName: 'gitHubRunner' });
 
 export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
   let messageId = '';
@@ -10,16 +13,24 @@ export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
     return { batchItemFailures: [] };
   }
 
+  logger.info('Received Request');
+
   // In theory we could batch creation of the runners however we would lose flexibility on tagging
   // All launched tasks would share the same tags
   for (const message of event.Records) {
     try {
       //process message
       messageId = message.messageId;
+      logger.info(`Processing message with id: ${messageId}`);
       const payload = JSON.parse(message.body);
-      getMatchingTaskDefinition(config.ecsFamilyPrefix, payload.labels);
+      const taskDefintionArn = await getMatchingTaskDefinition(
+        config.ecsFamilyPrefix,
+        payload.labels
+      );
+      await startRunner(taskDefintionArn);
     } catch (err) {
       //Add failures to list to return
+      logger.warn('Failed to process message: ${messageId}', err);
       batchItemFailures.push({ itemIdentifier: messageId });
     }
   }
