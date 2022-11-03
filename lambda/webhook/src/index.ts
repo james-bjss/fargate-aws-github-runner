@@ -87,6 +87,8 @@ export const handler = async (
     labels: workflowEvent.workflow_job.labels || [],
   };
 
+  logger.info(`Posting Message: ${actionMessage}`);
+
   try {
     await sendActionRequest(actionMessage);
     logger.info(

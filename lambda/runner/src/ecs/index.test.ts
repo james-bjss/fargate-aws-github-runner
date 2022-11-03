@@ -8,7 +8,11 @@ import {
 } from '@aws-sdk/client-ecs';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
-import { getMatchingTaskDefinitionForFamily, startRunner } from '.';
+import {
+  getMatchingTaskDefinition,
+  getMatchingTaskDefinitionForFamily,
+  startRunner,
+} from '.';
 
 const ecsMock = mockClient(ECSClient);
 
@@ -72,6 +76,10 @@ describe('ECS', () => {
     jest.restoreAllMocks();
   });
 
+  it('Should find matching task definitionsfor family prefix', async () => {
+    const result = await getMatchingTaskDefinition('gh_', ['linux', 'x86']);
+    expect(result).toEqual(listTaskDefinitionsResponse.taskDefinitionArns[0]);
+  });
   it('Should Match Family and Labels', async () => {
     const definition = await getMatchingTaskDefinitionForFamily('gh_linux', [
       'linux',

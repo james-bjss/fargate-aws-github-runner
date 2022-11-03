@@ -27,6 +27,7 @@ export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
         config.ecsFamilyPrefix,
         payload.labels
       );
+      logger.info(`Found TasksDefinition: ${taskDefintionArn}`);
       await startRunner(taskDefintionArn);
     } catch (err) {
       //Add failures to list to return

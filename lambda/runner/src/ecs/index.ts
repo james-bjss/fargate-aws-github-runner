@@ -1,3 +1,4 @@
+import { Logger } from '@aws-lambda-powertools/logger';
 import {
   ECSClient,
   ListTagsForResourceCommand,
@@ -11,6 +12,7 @@ import {
 } from '@aws-sdk/client-ecs';
 import config from '../config';
 
+const logger = new Logger({ serviceName: 'gitHubRunner' });
 const client = new ECSClient({ region: process.env.AWS_REGION });
 
 export const getMatchingTaskDefinition = async (
@@ -27,11 +29,13 @@ export const getMatchingTaskDefinition = async (
     command
   )) {
     if (data?.families && data.families.length > 0) {
+      logger.info(`Found Famlies: ${data.families}`);
       families = [...families, ...(data.families || [])];
     }
   }
 
-  for (let family in families) {
+  for (let family of families) {
+    logger.info(`iterating: ${family}`);
     const matchedArn = await getMatchingTaskDefinitionForFamily(family, labels);
     if (matchedArn) {
       return matchedArn;
@@ -52,9 +56,11 @@ export const getMatchingTaskDefinitionForFamily = async (
 
   let taskDefinitionArns = [];
   for await (const data of paginateListTaskDefinitions({ client }, command)) {
-    const arns: string[] = data.taskDefinitionArns?.map((item) => item) || [];
+    const arns: string[] = data.taskDefinitionArns || [];
     taskDefinitionArns = [...taskDefinitionArns, ...arns];
   }
+
+  logger.info(`Found Tasks Defs for family "${family}": ${taskDefinitionArns}`);
 
   //Find the first record that matches every label.
   //Need to think about this behaviour - do we want exact matching or have precedence? - Pass a strategy?
@@ -75,7 +81,7 @@ export const startRunner = async (taskDefinitionArn: string): Promise<void> => {
     enableECSManagedTags: true,
     networkConfiguration: {
       awsvpcConfiguration: {
-        assignPublicIp: 'false',
+        assignPublicIp: 'DISABLED',
         securityGroups: config.ecsSecurityGroups,
         subnets: config.ecsSubnets,
       },
