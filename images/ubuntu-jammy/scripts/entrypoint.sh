@@ -1,8 +1,5 @@
 #!/bin/sh
 
-ORGANIZATION=$ORG_GITHUB_NAME
-#ENVIRONMENT=$AWS_ENVIRONMENT
-
 echo 'Configuring Self Hosted Runner'
 
 if [ -z "${RUNNER_TOKEN_PATH}" ]; then
