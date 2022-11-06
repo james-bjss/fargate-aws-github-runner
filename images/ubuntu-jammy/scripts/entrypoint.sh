@@ -35,7 +35,7 @@ fi
 cd /home/github/actions-runner
 
 # export RUNNER_ALLOW_RUNASROOT="1"
-# ./config.sh --url https://github.com/${ORGANIZATION} --token ${ACCESS_TOKEN} --unattended --ephemeral --runnergroup self-hosted-${AWS_ENVIRONMENT} --labels ${AWS_ENVIRONMENT}
+# TODO: Add runner group: --runnergroup self-hosted-${AWS_ENVIRONMENT}
 ./config.sh --url ${GITHUB_URL} --token ${ACCESS_TOKEN} --unattended --ephemeral --labels ${LABELS}
 
 cleanup() {

@@ -12,10 +12,13 @@ resource "aws_ecs_task_definition" "service" {
       memory       = 512
       essential    = true
       portMappings = []
+      linuxParameters = {
+        initProcessEnabled = true
+      }
       logConfiguration = {
         logDriver : "awslogs",
         options : {
-          awslogs-group : aws_cloudwatch_log_group.runner.name,
+          awslogs-group : aws_cloudwatch_log_group.ecs_runner.name,
           awslogs-region : local.region,
           awslogs-create-group : "true",
           awslogs-stream-prefix : "ecs"
@@ -29,7 +32,7 @@ resource "aws_ecs_task_definition" "service" {
   execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   tags = {
-    "GH:labels" = "linux x86"
+    "GH:labels" = "self-hosted linux x64"
   }
 }
 

@@ -6,7 +6,7 @@ const config = {
   ssmkey: process.env.SECRET_PATH || '',
 
   //SQS config
-  sqsUrl: process.env.SQS_URL,
+  sqsUrl: process.env.SQS_URL || '',
 };
 
 export default config;

@@ -1,6 +1,6 @@
 import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
 import { WorkflowJobEvent } from '@octokit/webhooks-types';
-import config from '../config';
+import config from '../webhook/config';
 const sqsClient = new SQSClient({ region: process.env.AWS_REGION });
 
 export interface ActionRequestMessage {

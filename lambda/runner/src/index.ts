@@ -1,13 +1,12 @@
-import { Logger } from '@aws-lambda-powertools/logger';
 import { SSM } from '@aws-sdk/client-ssm';
 import { SQSBatchItemFailure, SQSBatchResponse, SQSEvent } from 'aws-lambda';
 import { randomUUID } from 'crypto';
 import config from './config';
 import { getMatchingTaskDefinition, RunnerConfig, startRunner } from './ecs';
+import { logger } from './logger';
 import { createRunnerToken } from './registration';
 import { SSMCache } from './ssm';
 
-const logger = new Logger({ serviceName: 'gitHubRunner' });
 const client = new SSM({ region: process.env.AWS_REGION });
 const secretCache = new SSMCache(client, config.secretTtl); //TODO: RENAME
 
@@ -15,6 +14,7 @@ export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
   let messageId = '';
   const batchItemFailures: SQSBatchItemFailure[] = [];
 
+  // Should never happen
   if (event.Records.length < 1) {
     return { batchItemFailures: [] };
   }
@@ -37,7 +37,6 @@ export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
       logger.warn(`payload: ${payload}`);
       // Grab GH Cert generate registration token and create Runner
       const ghCert = await secretCache.getSecretValue(config.ghAppKeyPath);
-      logger.warn(`scrt: ${ghCert}`);
       const token = await createRunnerToken(
         ghCert,
         config.useOrgRunner,

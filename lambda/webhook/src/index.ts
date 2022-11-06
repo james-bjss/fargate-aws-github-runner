@@ -1,115 +1,21 @@
-import { Logger } from '@aws-lambda-powertools/logger';
-import { SSM } from '@aws-sdk/client-ssm';
-import { Webhooks } from '@octokit/webhooks';
-import { WorkflowJobEvent } from '@octokit/webhooks-types';
-import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
-import config from './config';
-import { ActionRequestMessage, sendActionRequest } from './sqs';
-import { SSMCache } from './ssm';
-
-const logger = new Logger({ serviceName: 'gitHubWebHook' });
-const client = new SSM({ region: process.env.AWS_REGION });
-const secretCache = new SSMCache(client, config.secretTtl);
-
-const supportedEvents = ['check_run', 'workflow_job'];
+import { APIGatewayEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
+import { logger } from './logger';
+import { processEvent, Response } from './webhook/webhook';
 
 export const handler = async (
-  event: APIGatewayEvent
+  event: APIGatewayEvent,
+  _context: Context
 ): Promise<APIGatewayProxyResult> => {
-  for (const key in event.headers) {
-    event.headers[key.toLowerCase()] = event.headers[key];
-  }
-
-  const signature = event.headers['x-hub-signature-256'];
-
-  if (!event.body) {
-    logger.warn('Bad Request. Body is missing');
-    return {
-      statusCode: 400,
-      body: JSON.stringify({
-        message: 'Bad Request. Body is missing',
-      }),
-    };
-  }
-
-  // Fetch secret Key from SSM and configure validator
-  const secret = await secretCache.getSecretValue(config.ssmkey);
-  const webhooks = new Webhooks({
-    secret: secret,
-  });
-  logger.debug(`body:${event.body}`);
-  logger.debug(`header:${signature}`);
-
-  // Check request is signed with correct secret
-  if (!signature || !(await webhooks.verify(event.body, signature))) {
-    logger.warn(
-      'Unauthorized. Missing Or Invalid Signature. Check the webhook secret is configured correctly.'
-    );
-    return {
-      statusCode: 401,
-      body: JSON.stringify({
-        message: 'Unauthorized. Invalid Signature',
-      }),
-    };
-  }
-
-  // Check webhook is supported
-  const eventName = event.headers['x-github-event'];
-
-  if (!eventName || !supportedEvents.includes(eventName)) {
-    logger.warn(`Unsupported Event: '${eventName}'`);
-
-    return {
-      statusCode: 422,
-      body: JSON.stringify({
-        message: 'Event Type is Unsupported',
-      }),
-    };
-  }
-
-  const workflowEvent: WorkflowJobEvent = JSON.parse(event.body);
-
-  // Ignore unless the job is being queued
-  logger.debug(`Ignoring Event Action`);
-  if (workflowEvent.action !== 'queued') {
-    return {
-      statusCode: 201,
-      body: '',
-    };
-  }
-
-  const actionMessage: ActionRequestMessage = {
-    id: workflowEvent.workflow_job.id,
-    eventType: event.headers['x-github-event'],
-    repositoryName: workflowEvent.repository.name,
-    repositoryOwner: workflowEvent.repository.owner.login,
-    installationId: workflowEvent.installation?.id || -1,
-    labels: workflowEvent.workflow_job.labels || [],
-  };
-
-  logger.info(`Posting Message: ${actionMessage}`);
-
+  logger.debug(JSON.stringify(event));
+  let result: Response;
   try {
-    await sendActionRequest(actionMessage);
-    logger.info(
-      `Successfully queued job for: ${workflowEvent.repository.full_name}`
-    );
+    result = await processEvent(event.headers, JSON.parse(event.body));
   } catch (err) {
-    logger.error(
-      `Failed to queue job for: ${workflowEvent.repository.full_name}`,
-      err
-    );
-    return {
+    logger.error('Failed to process Webhook:', err);
+    result = {
       statusCode: 500,
-      body: JSON.stringify({
-        message: 'Failed to queue job',
-      }),
+      body: 'Failed to Process Webhook. Check logs for details',
     };
   }
-
-  // Success
-  return {
-    statusCode: 200,
-    body: '',
-  };
+  return result;
 };

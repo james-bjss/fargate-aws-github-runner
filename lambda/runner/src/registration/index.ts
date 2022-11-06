@@ -1,9 +1,6 @@
-import { Logger } from '@aws-lambda-powertools/logger';
 import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/rest';
 import config from '../config';
-
-const logger = new Logger({ serviceName: 'gitHubRunner' });
 
 export const createRunnerToken = async (
   cert: string,
@@ -33,7 +30,6 @@ const getAppInstallationId = async (
   isOrgInstallation: boolean,
   request: ActionRequestMessage
 ) => {
-  logger.warn(`getting app client`);
   const oktoKit = await getAppClient(cert);
 
   return isOrgInstallation
@@ -56,8 +52,6 @@ const getAppClient = async (
 ) => {
   const buffer = Buffer.from(cert, 'base64');
   const privateKey = buffer.toString();
-
-  logger.warn(`decoded: ${privateKey}`);
 
   const authConfig = {
     appId: config.ghAppId,

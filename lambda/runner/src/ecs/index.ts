@@ -1,4 +1,3 @@
-import { Logger } from '@aws-lambda-powertools/logger';
 import {
   ECSClient,
   ListTagsForResourceCommand,
@@ -11,8 +10,8 @@ import {
   RunTaskCommandInput,
 } from '@aws-sdk/client-ecs';
 import config from '../config';
+import { logger } from '../logger';
 
-const logger = new Logger({ serviceName: 'gitHubRunner' });
 const client = new ECSClient({ region: process.env.AWS_REGION });
 
 export const getMatchingTaskDefinition = async (
