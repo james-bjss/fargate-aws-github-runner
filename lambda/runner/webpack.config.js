@@ -22,6 +22,18 @@ module.exports = {
         use: ['ts-loader'],
         exclude: /node_modules/,
       },
+      {
+        test: /node_modules\/@octokit\/auth(-app)?/,
+        resolve: {
+          mainFields: ['main'],
+        },
+      },
+      {
+        test: /node_modules\/@octokit\/rest/,
+        resolve: {
+          mainFields: ['main'],
+        },
+      },
     ],
   },
   resolve: {

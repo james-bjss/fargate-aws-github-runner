@@ -117,7 +117,13 @@ describe('ECS', () => {
     ecsMock.on(RunTaskCommand).resolves({ failures: [] });
 
     await startRunner(
-      'arn:aws:ecs:us-east-1:012345678910:task-definition/gh_linux:4'
+      'arn:aws:ecs:us-east-1:012345678910:task-definition/gh_linux:4',
+      {
+        allowAutomaticUpdates: false,
+        tokenPath: 'blah',
+        organization: 'blah',
+        labels: ['self-hosted'],
+      }
     );
     expect(ecsMock).toHaveReceivedCommandTimes(RunTaskCommand, 1);
   });
@@ -128,7 +134,13 @@ describe('ECS', () => {
 
     await expect(
       startRunner(
-        'arn:aws:ecs:us-east-1:012345678910:task-definition/gh_linux:4'
+        'arn:aws:ecs:us-east-1:012345678910:task-definition/gh_linux:4',
+        {
+          allowAutomaticUpdates: false,
+          tokenPath: 'blah',
+          organization: 'blah',
+          labels: ['self-hosted'],
+        }
       )
     ).rejects.toThrow();
   });

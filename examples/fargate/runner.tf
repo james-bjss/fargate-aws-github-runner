@@ -3,8 +3,6 @@ data "aws_region" "current" {}
 
 locals {
   runnerpath = "../../lambda/runner/dist/runner.zip"
-  accountid  = data.aws_caller_identity.current.account_id
-  region     = data.aws_region.current.name
 }
 
 resource "aws_lambda_function" "runner" {
@@ -25,6 +23,9 @@ resource "aws_lambda_function" "runner" {
       ECS_SUBNETS         = join(",", module.vpc.private_subnets)
       ECS_SECURITY_GROUPS = aws_security_group.default_runner_group.id
       ECS_FAMILY_PREFIX   = "gh_"
+      GH_APP_KEY_PATH     = aws_ssm_parameter.github_app_cert.name
+      GH_APP_ID           = "258009"
+      USE_ORG_RUNNERS     = "false"
     }
   }
 }
@@ -86,6 +87,38 @@ resource "aws_iam_role_policy" "runner_sqs" {
         "Action" : ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"],
         "Resource" : aws_sqs_queue.webhook_events_workflow_job_queue.arn
       }
+    ]
+  })
+}
+
+//update
+
+resource "aws_iam_role_policy" "runner_ssm" {
+  name = "runner-lambda-ssm-policy" // naming
+  role = aws_iam_role.runner_role.name
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "ssm:GetParameter"
+        ],
+        "Resource" : [aws_ssm_parameter.github_app_cert.arn,
+          "arn:aws:ssm:${local.region}:${local.accountid}:parameter/gh_actions/token/*"
+        ]
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "ssm:GetParameter",
+          "ssm:PutParameter",
+          "ssm:DeleteParameter",
+          "ssm:DeleteParameters",
+        ],
+        "Resource" : ["arn:aws:ssm:${local.region}:${local.accountid}:parameter/gh_actions/token/*"]
+      }
+
     ]
   })
 }

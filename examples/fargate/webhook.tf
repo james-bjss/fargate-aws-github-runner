@@ -18,7 +18,7 @@ resource "aws_lambda_function" "webhook" {
   environment {
     variables = {
       SECRET_TTL  = "30"
-      SECRET_PATH = "/gh_action/webhook_secret"
+      SECRET_PATH = aws_ssm_parameter.webhook_secret.name
       SQS_URL     = aws_sqs_queue.webhook_events_workflow_job_queue.url
     }
   }
@@ -83,7 +83,7 @@ resource "aws_iam_role_policy" "webhook_ssm" {
         "Action" : [
           "ssm:GetParameter"
         ],
-        "Resource" : [aws_ssm_parameter.secret.arn]
+        "Resource" : [aws_ssm_parameter.webhook_secret.arn]
       }
     ]
   })

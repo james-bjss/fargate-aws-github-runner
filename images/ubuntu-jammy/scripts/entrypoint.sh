@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 echo 'Configuring Self Hosted Runner'
 
@@ -24,16 +25,18 @@ if [ -z "${LABELS}" ]; then
   exit 1
 fi
 
-# if [ -z "${ENVIRONMENT}" ]; then
-#   echo 1>&2 "error: missing AWS_ENVIRONMENT variable"
-#   exit 1
-# fi
+# If this is not an Org wide runner use the repo URL
+if [ "$USE_ORG" = "true" ]; then
+  GITHUB_URL="https://github.com/${ORGANIZATION}
+else
+  GITHUB_URL="https://github.com/${ORGANIZATION}/${REPO}
+fi
 
 cd /home/github/actions-runner
 
 # export RUNNER_ALLOW_RUNASROOT="1"
 # ./config.sh --url https://github.com/${ORGANIZATION} --token ${ACCESS_TOKEN} --unattended --ephemeral --runnergroup self-hosted-${AWS_ENVIRONMENT} --labels ${AWS_ENVIRONMENT}
-./config.sh --url https://github.com/${ORGANIZATION} --token ${ACCESS_TOKEN} --unattended --ephemeral --labels ${LABELS}
+./config.sh --url ${GITHUB_URL} --token ${ACCESS_TOKEN} --unattended --ephemeral --labels ${LABELS}
 
 cleanup() {
     echo "Removing runner..."

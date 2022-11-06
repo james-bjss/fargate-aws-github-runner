@@ -29,13 +29,11 @@ export const getMatchingTaskDefinition = async (
     command
   )) {
     if (data?.families && data.families.length > 0) {
-      logger.info(`Found Famlies: ${data.families}`);
       families = [...families, ...(data.families || [])];
     }
   }
 
   for (let family of families) {
-    logger.info(`iterating: ${family}`);
     const matchedArn = await getMatchingTaskDefinitionForFamily(family, labels);
     if (matchedArn) {
       return matchedArn;
@@ -60,7 +58,7 @@ export const getMatchingTaskDefinitionForFamily = async (
     taskDefinitionArns = [...taskDefinitionArns, ...arns];
   }
 
-  logger.info(`Found Tasks Defs for family "${family}": ${taskDefinitionArns}`);
+  logger.info(`Found Tasks defs for family "${family}": ${taskDefinitionArns}`);
 
   //Find the first record that matches every label.
   //Need to think about this behaviour - do we want exact matching or have precedence? - Pass a strategy?
@@ -73,7 +71,10 @@ export const getMatchingTaskDefinitionForFamily = async (
   return matchedArn;
 };
 
-export const startRunner = async (taskDefinitionArn: string): Promise<void> => {
+export const startRunner = async (
+  taskDefinitionArn: string,
+  runnerConfig: RunnerConfig
+): Promise<void> => {
   const command: RunTaskCommandInput = {
     taskDefinition: taskDefinitionArn,
     cluster: config.ecsCluster,
@@ -85,6 +86,27 @@ export const startRunner = async (taskDefinitionArn: string): Promise<void> => {
         securityGroups: config.ecsSecurityGroups,
         subnets: config.ecsSubnets,
       },
+    },
+    overrides: {
+      containerOverrides: [
+        {
+          name: 'runner', //TODO: Add to config
+          environment: [
+            {
+              name: 'RUNNER_TOKEN_PATH',
+              value: runnerConfig.tokenPath,
+            },
+            {
+              name: 'ORGANIZATION',
+              value: runnerConfig.organization,
+            },
+            {
+              name: 'LABELS',
+              value: runnerConfig.labels.join(','),
+            },
+          ],
+        },
+      ],
     },
   };
 
@@ -103,3 +125,10 @@ async function getLabelsforTaskDefinition(
   ).value;
   return tags.split(' ');
 }
+
+export type RunnerConfig = {
+  tokenPath: string;
+  organization: string;
+  allowAutomaticUpdates: boolean;
+  labels: string[];
+};

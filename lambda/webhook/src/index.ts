@@ -5,7 +5,7 @@ import { WorkflowJobEvent } from '@octokit/webhooks-types';
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import config from './config';
 import { ActionRequestMessage, sendActionRequest } from './sqs';
-import { SSMCache } from './ssm/cache';
+import { SSMCache } from './ssm';
 
 const logger = new Logger({ serviceName: 'gitHubWebHook' });
 const client = new SSM({ region: process.env.AWS_REGION });
@@ -82,7 +82,7 @@ export const handler = async (
     id: workflowEvent.workflow_job.id,
     eventType: event.headers['x-github-event'],
     repositoryName: workflowEvent.repository.name,
-    repositoryOwner: workflowEvent.repository.owner.name,
+    repositoryOwner: workflowEvent.repository.owner.login,
     installationId: workflowEvent.installation?.id || -1,
     labels: workflowEvent.workflow_job.labels || [],
   };
