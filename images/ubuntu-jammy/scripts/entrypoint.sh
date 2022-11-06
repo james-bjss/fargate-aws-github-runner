@@ -27,9 +27,9 @@ fi
 
 # If this is not an Org wide runner use the repo URL
 if [ "$USE_ORG" = "true" ]; then
-  GITHUB_URL="https://github.com/${ORGANIZATION}
+  GITHUB_URL="https://github.com/${ORGANIZATION}"
 else
-  GITHUB_URL="https://github.com/${ORGANIZATION}/${REPO}
+  GITHUB_URL="https://github.com/${ORGANIZATION}/${REPO}"
 fi
 
 cd /home/github/actions-runner

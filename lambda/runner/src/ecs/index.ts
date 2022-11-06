@@ -101,8 +101,16 @@ export const startRunner = async (
               value: runnerConfig.organization,
             },
             {
+              name: 'REPO',
+              value: runnerConfig.repositoryName,
+            },
+            {
               name: 'LABELS',
               value: runnerConfig.labels.join(','),
+            },
+            {
+              name: 'USE_ORG',
+              value: runnerConfig.isOrgRunner ? 'true' : 'false',
             },
           ],
         },
@@ -129,6 +137,8 @@ async function getLabelsforTaskDefinition(
 export type RunnerConfig = {
   tokenPath: string;
   organization: string;
+  isOrgRunner: boolean;
+  repositoryName: string;
   allowAutomaticUpdates: boolean;
   labels: string[];
 };

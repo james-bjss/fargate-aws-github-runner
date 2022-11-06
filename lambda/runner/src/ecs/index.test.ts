@@ -123,6 +123,8 @@ describe('ECS', () => {
         tokenPath: 'blah',
         organization: 'blah',
         labels: ['self-hosted'],
+        isOrgRunner: false,
+        repositoryName: 'blah',
       }
     );
     expect(ecsMock).toHaveReceivedCommandTimes(RunTaskCommand, 1);
@@ -140,6 +142,8 @@ describe('ECS', () => {
           tokenPath: 'blah',
           organization: 'blah',
           labels: ['self-hosted'],
+          isOrgRunner: false,
+          repositoryName: 'blah',
         }
       )
     ).rejects.toThrow();

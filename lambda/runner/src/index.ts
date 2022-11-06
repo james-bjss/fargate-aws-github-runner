@@ -56,7 +56,9 @@ export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
         tokenPath: tokenPath,
         allowAutomaticUpdates: false,
         organization: payload.repositoryOwner,
-        labels:payload.labels
+        labels: payload.labels,
+        isOrgRunner: config.useOrgRunner,
+        repositoryName: payload.repositoryName,
       };
 
       await startRunner(taskDefintionArn, runnerConfig);
