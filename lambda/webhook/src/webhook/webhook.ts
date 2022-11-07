@@ -4,7 +4,7 @@ import { WorkflowJobEvent } from '@octokit/webhooks-types';
 import { logger } from '../logger';
 import { ActionRequestMessage, sendActionRequest } from '../sqs';
 import { SSMCache } from '../ssm';
-import config from './config';
+import config, { validateConfig } from './config';
 
 const client = new SSM({ region: process.env.AWS_REGION });
 const secretCache = new SSMCache(client, config.secretTtl);
@@ -21,7 +21,7 @@ export const processEvent = async (
   event: WorkflowJobEvent
 ): Promise<Response> => {
   // Validate webhook config
-  if (!validateConfig()) {
+  if (!validateConfig(logger)) {
     logger.error('Webhook Lambda is misconfigured');
     return {
       statusCode: 500,
@@ -31,7 +31,7 @@ export const processEvent = async (
     };
   }
 
-  // convert all headers to lowercase as GH uses mixed cases
+  // convert all header keys to lowercase as GH uses mixed cases
   for (const key in headers) {
     headers[key.toLowerCase()] = headers[key];
   }
@@ -81,8 +81,9 @@ export const processEvent = async (
   }
 
   // Ignore unless the job is being created + queued
-  logger.debug(`Ignoring Event Action`);
   if (event.action !== 'queued') {
+    logger.debug(`Ignoring Event Action: ${event.action}`);
+
     return {
       statusCode: 201,
       body: '',
@@ -91,14 +92,14 @@ export const processEvent = async (
 
   const actionMessage: ActionRequestMessage = {
     id: event.workflow_job.id,
-    eventType: headers['x-github-event'],
+    eventType: eventName,
     repositoryName: event.repository.name,
     repositoryOwner: event.repository.owner.login,
     installationId: event.installation?.id || 0,
     labels: event.workflow_job.labels || [],
   };
 
-  logger.info(`Posting Message: ${actionMessage}`);
+  logger.info(`Posting Message: ${JSON.stringify(actionMessage)}`);
 
   try {
     await sendActionRequest(actionMessage);
@@ -119,23 +120,3 @@ export const processEvent = async (
     body: '',
   };
 };
-
-function validateConfig() {
-  logger.debug(`Validating config ${JSON.stringify(config, null, 2)}`);
-  let valid = true;
-
-  if (!config.ssmkey) {
-    valid = false;
-    logger.error('Secret Key SSM Path has not been configured');
-  }
-
-  try {
-    new URL(config.sqsUrl);
-  } catch (error) {
-    valid = false;
-    logger.error(`The SQS URL: ${config.ssmkey} is not a valid`, {
-      exception: error.message,
-    });
-  }
-  return valid;
-}

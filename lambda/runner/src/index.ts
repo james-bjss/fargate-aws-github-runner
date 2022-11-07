@@ -11,30 +11,52 @@ const client = new SSM({ region: process.env.AWS_REGION });
 const secretCache = new SSMCache(client, config.secretTtl); //TODO: RENAME
 
 export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
+  logger.debug(JSON.stringify(event));
+  let result: SQSBatchResponse;
+  try {
+    result = await processEvent(event);
+  } catch (err) {
+    logger.error('Failed to process Runner:', err);
+    result = { batchItemFailures: [] };
+  }
+
+  return result;
+};
+
+export const processEvent = async (
+  event: SQSEvent
+): Promise<SQSBatchResponse> => {
   let messageId = '';
   const batchItemFailures: SQSBatchItemFailure[] = [];
 
   // Should never happen
   if (event.Records.length < 1) {
+    logger.debug('Received event.records has 0 records');
     return { batchItemFailures: [] };
   }
 
-  logger.info('Received Request');
+  logger.info('Received request');
 
   // In theory we could batch creation of the runners however we would lose flexibility on tagging
   // All launched tasks would share the same tags
   for (const message of event.Records) {
     try {
-      //process message
       messageId = message.messageId;
       logger.info(`Processing message with id: ${messageId}`);
       const payload = JSON.parse(message.body);
-      const taskDefintionArn = await getMatchingTaskDefinition(
+      logger.debug(`payload: ${message.body}`);
+
+      const taskDefinitionArn = await getMatchingTaskDefinition(
         config.ecsFamilyPrefix,
         payload.labels
       );
-      logger.info(`Found Task Definition: ${taskDefintionArn}`);
-      logger.warn(`payload: ${payload}`);
+
+      if (!taskDefinitionArn) {
+        throw new Error('No matching task definition found');
+      }
+
+      logger.info(`Found task definition: ${taskDefinitionArn}`);
+
       // Grab GH Cert generate registration token and create Runner
       const ghCert = await secretCache.getSecretValue(config.ghAppKeyPath);
       const token = await createRunnerToken(
@@ -44,7 +66,7 @@ export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
       );
       logger.info(`token is: ${token}`);
 
-      const tokenPath = `/gh_actions/token/${randomUUID()}`;
+      const tokenPath = `${config.runnerSSMTokenPath}${randomUUID()}`;
       await secretCache.putSecureKey(
         tokenPath,
         token,
@@ -60,13 +82,14 @@ export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
         repositoryName: payload.repositoryName,
       };
 
-      await startRunner(taskDefintionArn, runnerConfig);
+      await startRunner(taskDefinitionArn, runnerConfig);
     } catch (err) {
       //Add failures to list to return
-      logger.warn('Failed to process message: ${messageId}', err);
+      logger.warn(`Failed to process message: ${messageId}`, err);
       batchItemFailures.push({ itemIdentifier: messageId });
     }
   }
+
   return {
     batchItemFailures: batchItemFailures,
   };

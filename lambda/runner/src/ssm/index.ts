@@ -10,7 +10,7 @@ export class SSMCache {
   private ttl: number;
   private cache: Record<string, Secret> = {};
 
-  constructor(client: SSMClient, ttl: number = 0) {
+  constructor(client: SSMClient, ttl = 0) {
     this.client = client;
     this.ttl = ttl;
   }
@@ -39,7 +39,7 @@ export class SSMCache {
   public async putSecureKey(
     secretKey: string,
     value: string,
-    description: string = ''
+    description = ''
   ): Promise<void> {
     try {
       await this.client.send(

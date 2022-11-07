@@ -28,17 +28,18 @@ export const getMatchingTaskDefinition = async (
     command
   )) {
     if (data?.families && data.families.length > 0) {
-      families = [...families, ...(data.families || [])];
+      families = [...families, ...data.families];
     }
   }
 
-  for (let family of families) {
+  for (const family of families) {
     const matchedArn = await getMatchingTaskDefinitionForFamily(family, labels);
     if (matchedArn) {
       return matchedArn;
     }
   }
-  return '';
+
+  return null;
 };
 
 export const getMatchingTaskDefinitionForFamily = async (

@@ -9,7 +9,7 @@ export class SSMCache {
   private ttl: number;
   private cache: Record<string, Secret> = {};
 
-  constructor(client: SSMClient, ttl: number = 0) {
+  constructor(client: SSMClient, ttl = 0) {
     this.client = client;
     this.ttl = ttl;
   }
