@@ -1,14 +1,12 @@
 {
   "plugins": ["unused-imports"],
   "parser": "@typescript-eslint/parser",
-  "extends": ["plugin:@typescript-eslint/recommended"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   "parserOptions": { "ecmaVersion": 2020, "sourceType": "module" },
   "rules": {
     "@typescript-eslint/ban-ts-comment": "off",
-    /*
-     * Unused imports rules
-     */
     "no-unused-vars": "off", // or "@typescript-eslint/no-unused-vars": "off",
+    "prefer-template": "error",
     "unused-imports/no-unused-imports": "error",
     "unused-imports/no-unused-vars": [
       "warn",

@@ -1,5 +1,6 @@
 {
   "name": "webhook",
+  "sideEffects": false,
   "version": "1.0.0",
   "description": "Webhook for Spawning GH Runners",
   "scripts": {
@@ -28,6 +29,8 @@
     "@types/aws-lambda": "^8.10.108",
     "@types/jest": "^29.2.0",
     "@types/node": "^18.11.7",
+    "@typescript-eslint/eslint-plugin": "^5.42.0",
+    "@typescript-eslint/parser": "^5.42.0",
     "aws-sdk-client-mock": "^2.0.0",
     "aws-sdk-client-mock-jest": "^2.0.0",
     "aws-sdk-mock": "^5.8.0",

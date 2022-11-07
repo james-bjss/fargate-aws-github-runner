@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2018",
+    "module": "NodeNext",
+    "target": "es2020",
     "outDir": "./dist",
     "strict": false,
     "types": ["node", "jest"],

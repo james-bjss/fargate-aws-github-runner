@@ -44,7 +44,7 @@ export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
       );
       logger.info(`token is: ${token}`);
 
-      const tokenPath = '/gh_actions/token/' + randomUUID();
+      const tokenPath = `/gh_actions/token/${randomUUID()}`;
       await secretCache.putSecureKey(
         tokenPath,
         token,

@@ -10,6 +10,7 @@ module.exports = {
     libraryTarget: 'commonjs2',
     path: path.join(__dirname, 'dist'),
     filename: 'index.js',
+    clean: true,
   },
   optimization: {
     minimize: true,
@@ -34,6 +35,5 @@ module.exports = {
     extensions: ['.ts', '.js', '.json'],
   },
   mode: 'production',
-  plugins: [new CleanWebpackPlugin()],
   devtool: 'source-map',
 };

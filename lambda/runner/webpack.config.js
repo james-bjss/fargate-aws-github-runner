@@ -10,6 +10,7 @@ module.exports = {
     libraryTarget: 'commonjs2',
     path: path.join(__dirname, 'dist'),
     filename: 'index.js',
+    clean: true,
   },
   optimization: {
     minimize: true,
@@ -22,6 +23,7 @@ module.exports = {
         use: ['ts-loader'],
         exclude: /node_modules/,
       },
+      // Prevents browser bundle being used
       {
         test: /node_modules\/@octokit\/auth(-app)?/,
         resolve: {
@@ -40,6 +42,5 @@ module.exports = {
     extensions: ['.ts', '.js', '.json'],
   },
   mode: 'production',
-  plugins: [new CleanWebpackPlugin()],
   devtool: 'source-map',
 };
