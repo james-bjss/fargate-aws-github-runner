@@ -5,10 +5,10 @@ import config from './config';
 import { getMatchingTaskDefinition, RunnerConfig, startRunner } from './ecs';
 import { logger } from './logger';
 import { createRunnerToken } from './registration';
-import { SSMCache } from './ssm';
+import { CachingSSMClient } from './ssm/client';
 
 const client = new SSM({ region: process.env.AWS_REGION });
-const secretCache = new SSMCache(client, config.secretTtl); //TODO: RENAME
+const ssmClient = new CachingSSMClient(client, config.secretTtl); //TODO: RENAME
 
 export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
   logger.debug(JSON.stringify(event));
@@ -58,7 +58,7 @@ export const processEvent = async (
       logger.info(`Found task definition: ${taskDefinitionArn}`);
 
       // Grab GH Cert generate registration token and create Runner
-      const ghCert = await secretCache.getSecretValue(config.ghAppKeyPath);
+      const ghCert = await ssmClient.getSecretValue(config.ghAppKeyPath);
       const token = await createRunnerToken(
         ghCert,
         config.useOrgRunner,
@@ -67,7 +67,7 @@ export const processEvent = async (
       logger.info(`token is: ${token}`);
 
       const tokenPath = `${config.runnerSSMTokenPath}${randomUUID()}`;
-      await secretCache.putSecureKey(
+      await ssmClient.putSecureKey(
         tokenPath,
         token,
         `Registration token for runner`

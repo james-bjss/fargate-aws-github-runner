@@ -16,3 +16,8 @@ module.exports = {
   ],
   coveragePathIgnorePatterns: ['node_modules'],
 };
+
+// eslint-disable-next-line no-undef
+process.env = Object.assign(process.env, {
+  LOG_LEVEL: 'ERROR', // Set log level to ERROR for tests
+});

@@ -2,9 +2,9 @@ import { SSM } from '@aws-sdk/client-ssm';
 import { Webhooks } from '@octokit/webhooks';
 import { WorkflowJobEvent } from '@octokit/webhooks-types';
 import { logger } from '../logger';
-import { ActionRequestMessage, sendActionRequest } from '../sqs';
+import { ActionRequestMessage, sendActionRequest } from '../sqs/client';
 import { CachingSSMClient } from '../ssm/client';
-import config, { validateConfig } from './config';
+import config from './config';
 
 const client = new SSM({ region: process.env.AWS_REGION });
 const secretCache = new CachingSSMClient(client, config.secretTtl);
@@ -21,7 +21,7 @@ export const processEvent = async (
   event: WorkflowJobEvent
 ): Promise<Response> => {
   // Validate webhook config
-  if (!validateConfig(logger)) {
+  if (!validateConfig()) {
     logger.error('Webhook Lambda is misconfigured');
     return {
       statusCode: 500,
@@ -120,3 +120,23 @@ export const processEvent = async (
     body: '',
   };
 };
+
+function validateConfig() {
+  logger.debug(`Validating config ${JSON.stringify(config, null, 2)}`);
+  let valid = true;
+
+  if (!config.ssmkey) {
+    valid = false;
+    logger.error('Secret Key SSM Path has not been configured');
+  }
+
+  try {
+    new URL(config.sqsUrl);
+  } catch (error) {
+    valid = false;
+    logger.error(`The SQS URL: ${config.sqsUrl} is not a valid URL`, {
+      exception: error.message,
+    });
+  }
+  return valid;
+}

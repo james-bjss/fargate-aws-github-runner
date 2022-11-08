@@ -17,14 +17,15 @@ const secret = crypto.randomBytes(32).toString('hex');
 
 // Mock lambda config
 jest.mock('./config', () => {
+  const module = jest.requireActual('./config');
   const config = {
     secretTtl: 0,
     ssmkey: '/gh_action/webhook_secret',
     sqsUrl: 'http://localhost',
   };
-
   return {
     __esModule: true,
+    ...module,
     config,
     default: config,
   };
