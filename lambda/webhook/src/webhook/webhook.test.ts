@@ -33,6 +33,7 @@ jest.mock('./config', () => {
 
 describe('Webhook', () => {
   beforeEach(() => {
+    jest.resetModules();
     sqsMock.reset();
     ssmMock.reset();
 
@@ -51,7 +52,6 @@ describe('Webhook', () => {
     sqsMock.on(SendMessageCommand).resolves({
       MessageId: '12345678-4444-5555-6666-123456789123',
     });
-    jest.resetModules();
   });
 
   afterAll(() => {

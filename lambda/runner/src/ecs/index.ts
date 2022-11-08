@@ -9,8 +9,8 @@ import {
   RunTaskCommand,
   RunTaskCommandInput,
 } from '@aws-sdk/client-ecs';
-import config from '../config';
 import { logger } from '../logger';
+import config from '../runner/config';
 
 const client = new ECSClient({ region: process.env.AWS_REGION });
 

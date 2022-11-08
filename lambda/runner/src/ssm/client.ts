@@ -58,7 +58,7 @@ export class CachingSSMClient {
 
   private isExpired(secret: Secret): boolean {
     const date = new Date();
-    return (secret.created.getTime() - date.getTime()) / 1000 <= this.ttl;
+    return (date.getTime() - secret.created.getTime()) / 1000 >= this.ttl;
   }
 }
 

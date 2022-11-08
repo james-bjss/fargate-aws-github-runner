@@ -1,4 +1,4 @@
-import { ActionRequestMessage, createRunnerToken } from '.';
+import { ActionRequestMessage, createRunnerToken } from './client';
 
 const token = 'xxx';
 describe('Auth tests', () => {

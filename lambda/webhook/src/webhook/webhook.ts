@@ -9,7 +9,7 @@ import config from './config';
 const client = new SSM({ region: process.env.AWS_REGION });
 const secretCache = new CachingSSMClient(client, config.secretTtl);
 
-const supportedEvents = ['workflow_job']; //TODO: Checkrun?
+const supportedEvents = ['workflow_job']; //TODO: Checkrun do we need this?
 
 export interface Response {
   statusCode: number;

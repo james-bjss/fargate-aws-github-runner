@@ -1,4 +1,8 @@
-import { GetParameterCommand, SSM, SSMClient } from '@aws-sdk/client-ssm';
+import {
+  GetParameterCommand,
+  PutParameterCommand,
+  SSMClient,
+} from '@aws-sdk/client-ssm';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { CachingSSMClient } from './client';
@@ -27,7 +31,7 @@ describe('SSM Client', () => {
           Value: secret,
         },
       });
-    const ssmClient = new SSM({});
+    const ssmClient = new SSMClient({});
 
     // Action
     const client = new CachingSSMClient(ssmClient);
@@ -59,7 +63,7 @@ describe('SSM Client', () => {
           Value: 'a different value',
         },
       });
-    const ssmClient = new SSM({});
+    const ssmClient = new SSMClient({});
     const client = new CachingSSMClient(ssmClient, ttl);
 
     //Assert first read
@@ -99,7 +103,7 @@ describe('SSM Client', () => {
           Value: secret2,
         },
       });
-    const ssmClient = new SSM({});
+    const ssmClient = new SSMClient({});
     const client = new CachingSSMClient(ssmClient, ttl);
 
     //Assert first read
@@ -127,7 +131,7 @@ describe('SSM Client', () => {
       })
       .rejects();
 
-    const ssmClient = new SSM({});
+    const ssmClient = new SSMClient({});
 
     // Action
     const client = new CachingSSMClient(ssmClient);
@@ -135,5 +139,39 @@ describe('SSM Client', () => {
 
     //Assert
     expect(ssmMock).toHaveReceivedCommandTimes(GetParameterCommand, 1);
+  });
+
+  it('Should write SSM key', async () => {
+    // Mock SSM response
+    const key = '/gh_action/token/123';
+    const ssmMock = mockClient(SSMClient);
+    ssmMock.on(PutParameterCommand).resolves({});
+
+    const ssmClient = new SSMClient({});
+
+    // Action
+    const client = new CachingSSMClient(ssmClient);
+    expect(client.putSecureKey(key, 'somevalue', 'somedescription')).resolves;
+
+    //Assert
+    expect(ssmMock).toHaveReceivedCommandTimes(PutParameterCommand, 1);
+  });
+
+  it('Should write SSM key', async () => {
+    // Mock SSM response
+    const key = '/gh_action/token/123';
+    const ssmMock = mockClient(SSMClient);
+    ssmMock.on(PutParameterCommand).rejects({});
+
+    const ssmClient = new SSMClient({});
+
+    // Action
+    const client = new CachingSSMClient(ssmClient);
+    expect(
+      client.putSecureKey(key, 'somevalue', 'somedescription')
+    ).rejects.toThrowError();
+
+    //Assert
+    expect(ssmMock).toHaveReceivedCommandTimes(PutParameterCommand, 1);
   });
 });

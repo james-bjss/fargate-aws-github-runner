@@ -19,11 +19,8 @@ describe('Test Webhook Handler Wrapper', () => {
 
   it('Message Is Processed Successfully', async () => {
     const mockWebhook = mocked(processEvent);
-    mockWebhook.mockImplementation(() => {
-      return new Promise((resolve) => {
-        resolve({ statusCode: 200, body: '{}' });
-      });
-    });
+    mockWebhook.mockResolvedValueOnce({ statusCode: 200, body: '{}' });
+
     const event = mock<APIGatewayEvent>();
     event.body = JSON.stringify(workflowjob_event);
     const context = mock<Context>();
@@ -34,11 +31,8 @@ describe('Test Webhook Handler Wrapper', () => {
 
   it('Returns Handled Errors', async () => {
     const mockWebhook = mocked(processEvent);
-    mockWebhook.mockImplementation(() => {
-      return new Promise((resolve) => {
-        resolve({ statusCode: 401, body: '{}' });
-      });
-    });
+    mockWebhook.mockResolvedValueOnce({ statusCode: 401, body: '{}' });
+
     const event = mock<APIGatewayEvent>();
     event.body = JSON.stringify(workflowjob_event);
     const context = mock<Context>();
@@ -49,7 +43,7 @@ describe('Test Webhook Handler Wrapper', () => {
 
   it('Handles Errors', async () => {
     const mockWebhook = mocked(processEvent);
-    mockWebhook.mockRejectedValue(new Error('an error'));
+    mockWebhook.mockRejectedValueOnce(new Error('an error'));
 
     const event = mock<APIGatewayEvent>();
     event.body = JSON.stringify(workflowjob_event);

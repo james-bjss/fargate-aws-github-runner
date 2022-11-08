@@ -1,6 +1,6 @@
 import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/rest';
-import config from '../config';
+import config from '../runner/config';
 
 export const createRunnerToken = async (
   cert: string,

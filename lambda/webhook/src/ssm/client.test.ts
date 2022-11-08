@@ -1,4 +1,4 @@
-import { GetParameterCommand, SSM, SSMClient } from '@aws-sdk/client-ssm';
+import { GetParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { CachingSSMClient } from './client';
@@ -27,7 +27,7 @@ describe('SSM Client', () => {
           Value: secret,
         },
       });
-    const ssmClient = new SSM({});
+    const ssmClient = new SSMClient({});
 
     // Action
     const client = new CachingSSMClient(ssmClient);
@@ -59,7 +59,7 @@ describe('SSM Client', () => {
           Value: 'a different value',
         },
       });
-    const ssmClient = new SSM({});
+    const ssmClient = new SSMClient({});
     const client = new CachingSSMClient(ssmClient, ttl);
 
     //Assert first read
@@ -99,7 +99,7 @@ describe('SSM Client', () => {
           Value: secret2,
         },
       });
-    const ssmClient = new SSM({});
+    const ssmClient = new SSMClient({});
     const client = new CachingSSMClient(ssmClient, ttl);
 
     //Assert first read
@@ -127,7 +127,7 @@ describe('SSM Client', () => {
       })
       .rejects();
 
-    const ssmClient = new SSM({});
+    const ssmClient = new SSMClient({});
 
     // Action
     const client = new CachingSSMClient(ssmClient);
