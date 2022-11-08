@@ -3,11 +3,11 @@ import { Webhooks } from '@octokit/webhooks';
 import { WorkflowJobEvent } from '@octokit/webhooks-types';
 import { logger } from '../logger';
 import { ActionRequestMessage, sendActionRequest } from '../sqs';
-import { SSMCache } from '../ssm';
+import { CachingSSMClient } from '../ssm/client';
 import config, { validateConfig } from './config';
 
 const client = new SSM({ region: process.env.AWS_REGION });
-const secretCache = new SSMCache(client, config.secretTtl);
+const secretCache = new CachingSSMClient(client, config.secretTtl);
 
 const supportedEvents = ['workflow_job']; //TODO: Checkrun?
 

@@ -18,7 +18,7 @@ const secret = crypto.randomBytes(32).toString('hex');
 // Mock lambda config
 jest.mock('./config', () => {
   const config = {
-    secretTtl: 1,
+    secretTtl: 0,
     ssmkey: '/gh_action/webhook_secret',
     sqsUrl: 'http://localhost',
   };
@@ -110,7 +110,7 @@ describe('Webhook', () => {
     expect(reponse.statusCode).toBe(401);
   });
 
-  it('Should Fail if Message I Unable to Be Queued', async () => {
+  it('Should Fail if Message is unable to be queued', async () => {
     sqsMock.reset();
     sqsMock.on(SendMessageCommand).rejects({});
     const event = await createSignedEvent(

@@ -14,6 +14,7 @@ resource "aws_lambda_function" "runner" {
   handler  = "index.handler"
   runtime  = "nodejs16.x"
   publish  = true
+  timeout  = 30
 
   source_code_hash = filebase64sha256(local.runnerpath)
 
