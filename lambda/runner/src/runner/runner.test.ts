@@ -1,74 +1,52 @@
-import {
-  ECSClient,
-  ListTagsForResourceCommand,
-  ListTaskDefinitionFamiliesCommand,
-  ListTaskDefinitionsCommand,
-  ListTaskDefinitionsCommandOutput,
-  RunTaskCommand,
-} from '@aws-sdk/client-ecs';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
-import { mockClient } from 'aws-sdk-client-mock';
 import { randomUUID } from 'crypto';
-import { handler } from '.';
+import { mocked } from 'jest-mock';
+import { getMatchingTaskDefinition } from '../ecs/client';
+import { processEvent } from './runner';
 
-const ecsMock = mockClient(ECSClient);
+// Mocks
+jest.mock('../ecs/client');
+// jest.mock('../ssm/client');
+jest.mock('../github/client');
 
-const listTaskDefinitionsResponse: ListTaskDefinitionsCommandOutput = {
-  $metadata: null,
-  taskDefinitionArns: [
-    'arn:aws:ecs:us-east-1:012345678910:task-definition/gh_linux:4',
-    'arn:aws:ecs:us-east-1:012345678910:task-definition/gh_linux:3',
-    'arn:aws:ecs:us-east-1:012345678910:task-definition/gh_linux:2',
-    'arn:aws:ecs:us-east-1:012345678910:task-definition/gh_linux:1',
-  ],
-};
+// eslint-disable-next-line prefer-const
+//let mockGetSecretValue = jest.fn();
 
 describe('SQS Event', () => {
+  beforeAll(() => {
+    jest.mock('../ssm/client', () => {
+      return {
+        __esModule: true,
+        default: jest.fn().mockImplementation(() => {
+          return {
+            getSecretValue: async () => {
+              return 'testing123';
+            },
+          };
+        }),
+      };
+    });
+  });
+
   beforeEach(() => {
-    ecsMock.reset();
-    ecsMock
-      .on(ListTaskDefinitionsCommand)
-      .resolves({
-        taskDefinitionArns: [],
-      })
-      .on(ListTaskDefinitionsCommand, { familyPrefix: 'gh_linux' }, false)
-      .resolves(listTaskDefinitionsResponse)
-      .on(ListTagsForResourceCommand)
-      .resolves({
-        tags: [
-          {
-            key: 'GH:labels',
-            value: 'linux,x86',
-          },
-        ],
-      })
-      .on(RunTaskCommand)
-      .resolves({ failures: [] })
-      .on(ListTaskDefinitionFamiliesCommand)
-      .resolves({
-        families: ['gh_linux'],
-        nextToken: null,
-      });
+    jest.resetModules();
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
   });
 
   it('Should Process Single Event Successfully', async () => {
     const event: SQSEvent = { Records: [] };
     event.Records.push(createSqsRecord({ labels: ['linux', 'x86'] }));
 
-    const response = await handler(event);
-    expect(response.batchItemFailures).toHaveLength(0);
-  });
 
-  it('Should Process Batched Events Successfully', async () => {
-    const event: SQSEvent = { Records: [] };
-
-    // Batch of 10 messages
-    for (let i = 0; i < 10; i++) {
-      event.Records.push(createSqsRecord({ labels: ['linux', 'x86'] }));
-    }
-
-    const response = await handler(event);
-    expect(response.batchItemFailures).toHaveLength(0);
+    // Configure mock reponses
+    const mockEcsClient = mocked(getMatchingTaskDefinition);
+    mockEcsClient.mockResolvedValueOnce(
+      'arn:aws:ecs:us-east-1:012345678910:task-definition/gh_linux:4'
+    );
+    await processEvent(event);
   });
 });
 

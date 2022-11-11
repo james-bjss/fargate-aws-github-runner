@@ -12,7 +12,7 @@ import {
   getMatchingTaskDefinition,
   getMatchingTaskDefinitionForFamily,
   startRunner,
-} from '.';
+} from './client';
 
 const ecsMock = mockClient(ECSClient);
 

@@ -5,7 +5,7 @@ import {
   SSMClient,
 } from '@aws-sdk/client-ssm';
 
-export class CachingSSMClient {
+export default class CachingSSMClient {
   private client: SSMClient;
   private ttl: number;
   private cache: Record<string, Secret> = {};

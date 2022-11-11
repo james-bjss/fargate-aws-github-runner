@@ -5,7 +5,7 @@ import {
 } from '@aws-sdk/client-ssm';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
-import { CachingSSMClient } from './client';
+import CachingSSMClient from './client';
 
 describe('SSM Client', () => {
   beforeEach(() => {

@@ -1,10 +1,14 @@
 import { SSMClient } from '@aws-sdk/client-ssm';
 import { SQSBatchItemFailure, SQSBatchResponse, SQSEvent } from 'aws-lambda';
 import { randomUUID } from 'crypto';
-import { getMatchingTaskDefinition, RunnerConfig, startRunner } from '../ecs';
+import {
+  getMatchingTaskDefinition,
+  RunnerConfig,
+  startRunner,
+} from '../ecs/client';
 import { createRunnerToken } from '../github/client';
 import { logger } from '../logger';
-import { CachingSSMClient } from '../ssm/client';
+import CachingSSMClient from '../ssm/client';
 import config from './config';
 
 const client = new SSMClient({ region: process.env.AWS_REGION });
