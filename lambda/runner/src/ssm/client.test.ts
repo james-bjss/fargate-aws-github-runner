@@ -7,6 +7,8 @@ import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import CachingSSMClient from './client';
 
+jest.mock('../logger');
+
 describe('SSM Client', () => {
   beforeEach(() => {
     jest.resetModules();

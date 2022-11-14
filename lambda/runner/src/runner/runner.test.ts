@@ -1,31 +1,22 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { randomUUID } from 'crypto';
 import { mocked } from 'jest-mock';
-import { getMatchingTaskDefinition } from '../ecs/client';
+import { getMatchingTaskDefinition, startRunner } from '../ecs/client';
+import CachingSSMClient from '../ssm/client';
 import { processEvent } from './runner';
 
 // Mocks
+jest.mock('../logger');
 jest.mock('../ecs/client');
-// jest.mock('../ssm/client');
+jest.mock('../ssm/client');
 jest.mock('../github/client');
-
-// eslint-disable-next-line prefer-const
-//let mockGetSecretValue = jest.fn();
 
 describe('SQS Event', () => {
   beforeAll(() => {
-    jest.mock('../ssm/client', () => {
-      return {
-        __esModule: true,
-        default: jest.fn().mockImplementation(() => {
-          return {
-            getSecretValue: async () => {
-              return 'testing123';
-            },
-          };
-        }),
-      };
-    });
+    const mockSSMClient = mocked(CachingSSMClient);
+    mockSSMClient.prototype.getSecretValue.mockImplementationOnce(
+      async () => 'somevalue'
+    );
   });
 
   beforeEach(() => {
@@ -37,17 +28,52 @@ describe('SQS Event', () => {
   });
 
   it('Should Process Single Event Successfully', async () => {
+    const taskDefinition =
+      'arn:aws:ecs:us-east-1:012345678910:task-definition/gh_linux:4';
+    const labels = ['self-hosted', 'linux', 'x64'];
     const event: SQSEvent = { Records: [] };
-    event.Records.push(createSqsRecord({ labels: ['linux', 'x86'] }));
-
+    event.Records.push(createSqsRecord({ labels: labels }));
 
     // Configure mock reponses
-    const mockEcsClient = mocked(getMatchingTaskDefinition);
-    mockEcsClient.mockResolvedValueOnce(
-      'arn:aws:ecs:us-east-1:012345678910:task-definition/gh_linux:4'
+    const mockEcsgetTasks = mocked(getMatchingTaskDefinition);
+    mockEcsgetTasks.mockResolvedValueOnce(taskDefinition);
+    const mockEcsStartRunner = mocked(startRunner);
+    mockEcsStartRunner.mockResolvedValueOnce();
+
+    const result = await processEvent(event);
+
+    // Check no errors returned
+    expect(result.batchItemFailures).toHaveLength(0);
+    // Check the task and labels match
+    expect(mockEcsStartRunner).toBeCalledWith(
+      taskDefinition,
+      expect.objectContaining({ labels: labels })
     );
-    await processEvent(event);
   });
+});
+
+it('Should Return Failures If Message Not Processed', async () => {
+  const taskDefinition =
+    'arn:aws:ecs:us-east-1:012345678910:task-definition/gh_linux:4';
+  const labels = ['self-hosted', 'linux', 'x64'];
+  const event: SQSEvent = { Records: [] };
+  event.Records.push(createSqsRecord({ labels: labels }));
+
+  // Configure mock reponses
+  const mockEcsgetTasks = mocked(getMatchingTaskDefinition);
+  mockEcsgetTasks.mockResolvedValueOnce(taskDefinition);
+  const mockEcsStartRunner = mocked(startRunner);
+  mockEcsStartRunner.mockRejectedValueOnce(new Error('some error'));
+
+  const result = await processEvent(event);
+
+  // Check no errors returned
+  expect(result.batchItemFailures).toHaveLength(1);
+  // Check the task and labels match
+  expect(mockEcsStartRunner).toBeCalledWith(
+    taskDefinition,
+    expect.objectContaining({ labels: labels })
+  );
 });
 
 function createSqsRecord(body: object): SQSRecord {

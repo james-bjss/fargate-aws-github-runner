@@ -5,6 +5,7 @@ import { handler } from '.';
 import { processEvent } from './runner/runner';
 
 // Mock call to the runner
+jest.mock('./logger');
 jest.mock('./runner/runner');
 describe('SQS Event', () => {
   beforeEach(() => {

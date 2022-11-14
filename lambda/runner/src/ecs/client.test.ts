@@ -16,8 +16,9 @@ import {
 
 const ecsMock = mockClient(ECSClient);
 
+jest.mock('../logger');
 // Mock lambda config
-jest.mock('../config', () => {
+jest.mock('../runner/config', () => {
   const config = {
     ecsCluster: 'testcluster',
     ecsSubnets: ['sn-1', 'sn-2'],
