@@ -12,7 +12,7 @@ const config = {
 
   // SSM config
   secretTtl: Number.isInteger(secretTtl) ? secretTtl : 0,
-  runnerSSMTokenPath: '/gh_actions/token/',
+  runnerSSMTokenPath: process.env.GH_RUNNER_KEY_PATH || '/gh_actions/token/',
 
   // GH App config
   ghAppId: parseInt(process.env.GH_APP_ID || ''),

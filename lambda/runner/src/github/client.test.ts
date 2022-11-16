@@ -17,7 +17,7 @@ jest.mock('../runner/config', () => {
   };
 });
 
-// Create dummy private key
+// Create app private key
 const { privateKey } = generateKeyPairSync('rsa', {
   modulusLength: 2048,
   publicKeyEncoding: {
@@ -31,13 +31,13 @@ const { privateKey } = generateKeyPairSync('rsa', {
 });
 const privateKeyB64 = Buffer.from(privateKey, 'utf-8').toString('base64');
 
-describe('Auth tests', () => {
+describe('Github Client', () => {
   beforeAll(() => {
     jest.resetModules();
     jest.clearAllMocks();
     nock.disableNetConnect();
   });
-  it('Should Create Runner Token', async () => {
+  it('Should Create Repository Runner Token', async () => {
     const runnerToken = {
       token: randomUUID(),
       expires_at: '2020-01-22T12:13:35.123-08:00',
@@ -69,6 +69,43 @@ describe('Auth tests', () => {
       .reply(200, runnerToken);
 
     expect(await createRunnerToken(privateKeyB64, false, request)).toBe(
+      runnerToken.token
+    );
+  });
+
+  it('Should Create Organization Runner Token', async () => {
+    // Set config to use Org Runners
+    const runnerToken = {
+      token: randomUUID(),
+      expires_at: '2020-01-22T12:13:35.123-08:00',
+    };
+
+    const request: ActionRequestMessage = {
+      id: 123,
+      eventType: 'workflow_job',
+      repositoryOwner: 'james-bjss',
+      repositoryName: 'gh-webhook-test',
+      installationId: 123,
+      labels: ['self-hosted', 'linux', 'x64'],
+    };
+
+    //Mock repository auth flow
+    nock('https://api.github.com')
+      .get(
+        `/orgs/${request.repositoryOwner}/installation`
+      )
+      .once()
+      .reply(200, { id: 123 })
+      .post('/app/installations/123/access_tokens')
+      .once()
+      .reply(200)
+      .post(
+        `/orgs/${request.repositoryOwner}/actions/runners/registration-token`
+      )
+      .once()
+      .reply(200, runnerToken);
+
+    expect(await createRunnerToken(privateKeyB64, true, request)).toBe(
       runnerToken.token
     );
   });
