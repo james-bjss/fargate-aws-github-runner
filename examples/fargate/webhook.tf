@@ -19,7 +19,7 @@ resource "aws_lambda_function" "webhook" {
     variables = {
       SECRET_TTL  = "30"
       SECRET_PATH = aws_ssm_parameter.webhook_secret.name
-      SQS_URL     = aws_sqs_queue.webhook_events_workflow_job_queue.url
+      SQS_URL     = aws_sqs_queue.webhook_events_workflow_job_queue.id
     }
   }
 }
