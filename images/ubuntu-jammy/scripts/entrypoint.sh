@@ -13,6 +13,7 @@ if [ -z "${ORGANIZATION}" ]; then
   exit 1
 fi
 
+# Fetch registration token
 ACCESS_TOKEN=$(aws ssm get-parameter --name $RUNNER_TOKEN_PATH --with-decryption --output text --query Parameter.Value)
 
 if [ -z "${ACCESS_TOKEN}" ]; then
@@ -39,6 +40,8 @@ cd /home/github/actions-runner
 ./config.sh --url ${GITHUB_URL} --token ${ACCESS_TOKEN} --unattended --ephemeral --labels ${LABELS}
 
 cleanup() {
+    echo "Cleaning up token..."
+    aws ssm delete-parameter --name $RUNNER_TOKEN_PATH || true
     echo "Removing runner..."
     ./config.sh remove --token ${ACCESS_TOKEN}
 }
@@ -47,3 +50,4 @@ trap 'cleanup; exit 130' INT
 trap 'cleanup; exit 143' TERM
 
 ./run.sh & wait $!
+aws ssm delete-parameter --name $RUNNER_TOKEN_PATH || true
