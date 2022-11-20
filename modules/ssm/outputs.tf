@@ -3,6 +3,7 @@ output "parameters" {
     github_app_id = {
       name = aws_ssm_parameter.github_app_id.name
       arn  = aws_ssm_parameter.github_app_id.arn
+      value = var.github_app.id //TODO: PULL FROM SSM
     }
     github_app_key_base64 = {
       name = aws_ssm_parameter.github_app_key_base64.name

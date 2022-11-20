@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="webhook">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lambda/webhook/dist/webhook.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -27,18 +27,19 @@ resource "aws_lambda_function" "runner" {
   environment {
     variables = {
       // ECS Config
+      ECS_CLUSTER         = var.ecs_cluster_name
       ECS_FAMILY_PREFIX   = var.ecs_family_prefix
-      ECS_SUBNETS         = join(",",var.subnet_ids)
-      ECS_SECURITY_GROUPS = join(",",var.ecs_security_groups)
+      ECS_SUBNETS         = join(",", var.subnet_ids)
+      ECS_SECURITY_GROUPS = join(",", var.ecs_security_groups)
       SECRET_TTL          = var.secret_ttl
-      GH_RUNNER_KEY_PATH  = var.github_app_parameters.key_base64.name
+      GH_RUNNER_KEY_PATH  = var.runner_token_path
 
 
       USE_ORG_RUNNERS = var.enable_organization_runners
       ENVIRONMENT     = var.prefix
       GHES_URL        = var.ghes_url
       LOG_LEVEL       = var.log_level
-      GH_APP_ID       = var.github_app_parameters.id.name
+      GH_APP_ID       = var.github_app_parameters.id.value
       GH_APP_KEY_PATH = var.github_app_parameters.key_base64.name
       // Maybe implement? RUNNER_GROUP_NAME                    = var.runner_group_name
       // Maybe implement? RUNNERS_MAXIMUM_COUNT                = var.runners_maximum_count
@@ -89,7 +90,12 @@ resource "aws_iam_role_policy" "runner" {
   name = "${var.prefix}-lambda-runner-policy"
   role = aws_iam_role.runner.name
   policy = templatefile("${path.module}/policies/lambda-scale-up.json", {
+    //TODO: Family Prefix
+    region                    = var.aws_region
+    account_id                = var.aws_account_id
+    ecs_cluster_arn           = var.ecs_cluster_arn
     arn_runner_instance_role  = aws_iam_role.runner.arn
+    ecs_execution_role_arn    = var.ecs_execution_role_arn
     sqs_arn                   = var.sqs_build_queue.arn
     github_app_id_arn         = var.github_app_parameters.id.arn
     github_app_key_base64_arn = var.github_app_parameters.key_base64.arn

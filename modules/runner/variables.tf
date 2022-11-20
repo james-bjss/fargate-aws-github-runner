@@ -3,15 +3,15 @@ variable "aws_region" {
   type        = string
 }
 
-variable "aws_partition" {
-  description = "(optiona) partition in the arn namespace to use if not 'aws'"
+variable "aws_account_id" {
+  description = "AWS account id"
   type        = string
-  default     = "aws"
 }
 
-variable "vpc_id" {
-  description = "The VPC for the security groups."
+variable "aws_partition" {
+  description = "(optional) partition in the arn namespace to use if not 'aws'"
   type        = string
+  default     = "aws"
 }
 
 variable "subnet_ids" {
@@ -119,38 +119,10 @@ variable "role_path" {
   default     = null
 }
 
-variable "instance_profile_path" {
-  description = "The path that will be added to the instance_profile, if not set the prefix will be used."
-  type        = string
-  default     = null
-}
-
 variable "runner_as_root" {
   description = "Run the action runner under the root user. Variable `runner_run_as` will be ignored."
   type        = bool
   default     = false
-}
-
-variable "runner_run_as" {
-  description = "Run the GitHub actions agent as user."
-  type        = string
-  default     = "ec2-user"
-}
-
-variable "runners_maximum_count" {
-  description = "The maximum number of runners that will be created."
-  type        = number
-  default     = 3
-}
-
-variable "idle_config" {
-  description = "List of time period that can be defined as cron expression to keep a minimum amount of runners active instead of scaling down to 0. By defining this list you can ensure that in time periods that match the cron expression within 5 seconds a runner is kept idle."
-  type = list(object({
-    cron      = string
-    timeZone  = string
-    idleCount = number
-  }))
-  default = []
 }
 
 variable "logging_retention_in_days" {
@@ -173,12 +145,6 @@ variable "runner_iam_role_managed_policy_arns" {
 
 variable "enable_cloudwatch_agent" {
   description = "Enabling the cloudwatch agent on the ec2 runner instances, the runner contains default config. Configuration can be overridden via `cloudwatch_config`."
-  type        = bool
-  default     = true
-}
-
-variable "enable_managed_runner_security_group" {
-  description = "Enabling the default managed security group creation. Unmanaged security groups can be specified via `runner_additional_security_group_ids`."
   type        = bool
   default     = true
 }
@@ -209,18 +175,6 @@ variable "lambda_subnet_ids" {
 
 variable "lambda_security_group_ids" {
   description = "List of security group IDs associated with the Lambda function."
-  type        = list(string)
-  default     = []
-}
-
-variable "key_name" {
-  description = "Key pair name"
-  type        = string
-  default     = null
-}
-
-variable "runner_additional_security_group_ids" {
-  description = "(optional) List of additional security groups IDs to apply to the runner"
   type        = list(string)
   default     = []
 }
@@ -369,6 +323,21 @@ variable "enable_user_data_debug_logging" {
 }
 
 # ECS Variables
+variable "ecs_cluster_name" {
+  description = "Arn of the cluster in which to launch runners"
+  type = string
+}
+
+variable "ecs_cluster_arn" {
+  description = "Arn of the cluster in which to launch runners"
+  type = string
+}
+
+variable "ecs_execution_role_arn" {
+    description = "Execution Role ARN for ECS runner tasks"
+    type = string
+}
+
 variable "ecs_family_prefix" {
   description = "Prefix of the task definition family to search For When launching runners."
   type = string
@@ -384,3 +353,12 @@ variable "secret_ttl" {
   type = string
 }
   
+variable "runner_token_path" {
+  description = "Path in SSM to store runner tokens"
+  type        = string
+  default     = "/actions_runner/tokens/"
+  validation {
+    condition     = can(regex("^/.*/$", var.runner_token_path))
+    error_message = "Invalid token path. It should start and end with a slash ('/')."
+  }
+}

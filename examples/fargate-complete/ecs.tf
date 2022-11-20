@@ -17,8 +17,7 @@ module "ecs" {
   }
 
   tags = {
-    Environment = "Development"
-    Project     = "GHRunner"
+    Environment = var.prefix
   }
 }
 
@@ -54,7 +53,7 @@ resource "aws_ecs_task_definition" "service" {
   cpu                      = "256"
   memory                   = "1024"
   requires_compatibilities = ["FARGATE"]
-  execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn
+  execution_role_arn       = aws_iam_role.ecs_execution_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   tags = {
     "GH:labels" = "self-hosted linux x64"
@@ -67,12 +66,6 @@ resource "aws_cloudwatch_log_group" "ecs_runner" {
 }
 
 
-// Role for pulling images and logging
-resource "aws_iam_role" "ecsTaskExecutionRole" {
-  name               = "ecsRunnerTaskExecutionRole"
-  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
-}
-
 data "aws_iam_policy_document" "assume_role_policy" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -84,44 +77,39 @@ data "aws_iam_policy_document" "assume_role_policy" {
   }
 }
 
+# Exection role. This grants the ability to log to Cloudatch and pull Images from ECR
+resource "aws_iam_role" "ecs_execution_role" {
+  name               = "${var.prefix}-runner-execution-role"
+  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
+}
+
 resource "aws_iam_role_policy" "execution_role_logging" {
-  name = "runner-lambda-logging-policy" // naming
-  role = aws_iam_role.ecsTaskExecutionRole.name
-  policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Effect" : "Allow",
-        "Action" : ["logs:CreateLogStream", "logs:PutLogEvents"],
-        "Resource" : "${aws_cloudwatch_log_group.runner.arn}*"
-      }
-    ]
+  name = "${var.prefix}-ecs-logging"
+  role = aws_iam_role.ecs_execution_role.name
+  policy = templatefile("policies/ecs-execution-cloudwatch.json", {
+    log_group_arn = aws_cloudwatch_log_group.ecs_runner.arn
   })
 }
 
-//TODO: Make the same
+# Standard policy for pulling from ECR
+resource "aws_iam_role_policy_attachment" "ecs_execution_role" {
+  role       = aws_iam_role.ecs_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+
+# Role granted to the executing task in ECS
 resource "aws_iam_role" "ecs_task_role" {
-  name               = "runner-task-role"
+  name               = "${var.prefix}-runner-task-role"
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 }
 
 resource "aws_iam_role_policy" "runner_task_ssm" {
   role = aws_iam_role.ecs_task_role.name
-  policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "ssm:GetParameter"
-        ],
-        "Resource" : ["arn:aws:ssm:${var.region}:${local.accountid}:parameter/gh_actions/token/*"]
-      }
-    ]
+  policy = templatefile("policies/ecs-task-ssm.json", {
+    region                = local.region
+    account_id            = local.account_id
+    runner_token_ssm_path = var.runner_token_path
   })
 }
 
-resource "aws_iam_role_policy_attachment" "ecsTaskExecutionRole_policy" {
-  role       = aws_iam_role.ecsTaskExecutionRole.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}

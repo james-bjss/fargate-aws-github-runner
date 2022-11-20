@@ -55,7 +55,6 @@ export const processEvent = async (
         config.useOrgRunner,
         payload
       );
-      logger.info(`token is: ${token}`);
 
       const tokenPath = `${config.runnerSSMTokenPath}${randomUUID()}`;
       await ssmClient.putSecureKey(

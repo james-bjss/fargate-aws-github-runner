@@ -3,16 +3,6 @@ variable "aws_region" {
   type        = string
 }
 
-variable "vpc_id" {
-  description = "The VPC for security groups of the action runners."
-  type        = string
-}
-
-variable "subnet_ids" {
-  description = "List of subnets in which the action runners will be launched, the subnets needs to be subnets in the `vpc_id`."
-  type        = list(string)
-}
-
 variable "tags" {
   description = "Map of tags that will be added to created resources. By default resources will be tagged with name and environment."
   type        = map(string)
@@ -25,14 +15,15 @@ variable "prefix" {
   default     = "github-actions"
 }
 
+# Runner Lambda Config
 variable "enable_organization_runners" {
-  description = "Register runners to organization, instead of repo level"
+  description = "Register runners to an organization, instead of an individual repo"
   type        = bool
   default     = false
 }
 
 variable "github_app" {
-  description = "GitHub app parameters, see your github app. Ensure the key is the base64-encoded `.pem` file (the output of `base64 app.private-key.pem`, not the content of `private-key.pem`)."
+  description = "GitHub app parameters, see your github app. Ensure the key is the base64-encoded `.pem` file (the output of `base64 -w 0 app.private-key.pem`, not the content of `private-key.pem`)."
   type = object({
     key_base64     = string
     id             = string
@@ -64,7 +55,7 @@ variable "webhook_lambda_timeout" {
 }
 
 variable "runners_scale_up_lambda_timeout" {
-  description = "Time out for the scale up lambda in seconds."
+  description = "Time out for the runner lambda in seconds."
   type        = number
   default     = 30
 }
@@ -156,12 +147,6 @@ variable "lambda_security_group_ids" {
   description = "List of security group IDs associated with the Lambda function."
   type        = list(string)
   default     = []
-}
-
-variable "key_name" {
-  description = "Key pair name"
-  type        = string
-  default     = null
 }
 
 variable "instance_type" {
@@ -292,7 +277,7 @@ variable "lambda_architecture" {
 }
 
 variable "enable_workflow_job_events_queue" {
-  description = "Enabling this experimental feature will create a secondory sqs queue to wich a copy of the workflow_job event will be delivered."
+  description = "Enabling this experimental feature will create a secondary sqs queue to wich a copy of the workflow_job event will be delivered."
   type        = bool
   default     = false
 }
@@ -312,7 +297,7 @@ variable "workflow_job_queue_configuration" {
 }
 
 variable "queue_encryption" {
-  description = "Configure how data on queues managed by the modules in ecrypted at REST. Options are encryped via SSE, non encrypted and via KMSS. By default encryptes via SSE is enabled. See for more details the Terraform `aws_sqs_queue` resource https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue."
+  description = "Configure how data on queues managed by the modules are ecrypted at REST. Options are encryped via SSE, non encrypted and via KMSS. By default encryption via SSE is enabled. See for more details the Terraform `aws_sqs_queue` resource https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue."
   type = object({
     kms_data_key_reuse_period_seconds = number
     kms_master_key_id                 = string
@@ -330,18 +315,22 @@ variable "queue_encryption" {
 }
 
 variable "ecs_family_prefix" {
-  description = "Prefix of the task definition family to search For When launching runners."
+  description = "Prefix of the task definition family to search for when launching runners."
   type        = string
-}
-
-variable "ecs_security_groups" {
-  description = "Security groups to apply to the runner tasks"
-  type        = list(string)
 }
 
 variable "secret_ttl" {
-  description = "Time in seconds that the lambda should cache SSM parameters"
+  description = "Time in seconds that the lambda should cache SSM parameters. Useful for reducing calls to SSM."
   type        = string
   default     = 30
 }
-  
+
+variable "runner_token_path" {
+  description = "Path in SSM to store runner tokens"
+  type        = string
+  default     = "/actions_runner/tokens/"
+  validation {
+    condition     = can(regex("^/.*/$", var.runner_token_path))
+    error_message = "Invalid token path. It should start and end with a slash ('/')."
+  }
+}

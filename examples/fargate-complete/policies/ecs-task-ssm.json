@@ -1,0 +1,14 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:GetParameter", "ssm:DeleteParameter"
+            ],
+            "Resource": [
+                "arn:aws:ssm:${region}:${account_id}:parameter${runner_token_ssm_path}*"
+            ]
+        }
+    ]
+}

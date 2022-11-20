@@ -1,3 +1,4 @@
+
 locals {
   tags = merge(var.tags, {
     "ghr:environment" = var.prefix
@@ -9,10 +10,102 @@ locals {
   }
 }
 
-resource "random_string" "random" {
-  length  = 24
-  special = false
-  upper   = false
+# Create SSM secret config
+module "ssm" {
+  source = "../../modules/ssm"
+
+  kms_key_arn = var.kms_key_arn
+  prefix      = var.prefix
+  github_app  = var.github_app
+  tags        = local.tags
+}
+
+# Creates the webhook that queues workflow events
+module "webhook" {
+  source = "../../modules/webhook"
+
+  aws_region                = var.aws_region
+  prefix                    = var.prefix
+  tags                      = local.tags
+  kms_key_arn               = var.kms_key_arn
+  sqs_build_queue           = aws_sqs_queue.queued_builds
+  sqs_build_queue_fifo      = var.fifo_build_queue
+  github_app_webhook_secret = module.ssm.parameters.github_app_webhook_secret
+
+  webhook_lambda_apigateway_access_log_settings = var.webhook_lambda_apigateway_access_log_settings
+  lambda_runtime                                = var.lambda_runtime
+  lambda_architecture                           = var.lambda_architecture
+  lambda_zip                                    = var.webhook_lambda_zip
+  lambda_timeout                                = var.webhook_lambda_timeout
+  logging_retention_in_days                     = var.logging_retention_in_days
+  logging_kms_key_id                            = var.logging_kms_key_id
+
+  # labels
+  #   enable_workflow_job_labels_check = var.runner_enable_workflow_job_labels_check
+  #   workflow_job_labels_check_all    = var.runner_enable_workflow_job_labels_check_all
+  #  runner_labels                    = var.runner_extra_labels != "" ? "${local.default_runner_labels},${var.runner_extra_labels}" : local.default_runner_labels
+
+  role_path                 = var.role_path
+  role_permissions_boundary = var.role_permissions_boundary
+  repository_white_list     = var.repository_white_list
+
+  log_level = var.log_level
+}
+
+# Create Runner Lambdas that handle queued messages and create ECS tasks
+module "runners" {
+  source = "../../modules/runner"
+
+  aws_region                = var.aws_region
+  aws_account_id            = local.account_id
+  ecs_cluster_arn           = module.ecs.cluster_arn
+  ecs_cluster_name          = module.ecs.cluster_name
+  ecs_execution_role_arn    = aws_iam_role.ecs_execution_role.arn
+  subnet_ids                = module.vpc.private_subnets
+  prefix                    = var.prefix
+  tags                      = local.tags
+  lambda_runtime            = var.lambda_runtime
+  lambda_architecture       = var.lambda_architecture
+  lambda_zip                = var.runners_lambda_zip
+  lambda_timeout_scale_up   = var.runners_scale_up_lambda_timeout
+  lambda_subnet_ids         = var.lambda_subnet_ids
+  lambda_security_group_ids = var.lambda_security_group_ids
+  logging_retention_in_days = var.logging_retention_in_days
+  logging_kms_key_id        = var.logging_kms_key_id
+
+  sqs_build_queue             = aws_sqs_queue.queued_builds
+  github_app_parameters       = local.github_app_parameters
+  enable_organization_runners = var.enable_organization_runners
+  ecs_family_prefix           = var.ecs_family_prefix
+  ecs_security_groups         = [aws_security_group.default_runner_group.id]
+  secret_ttl                  = var.secret_ttl
+
+  #   instance_profile_path     = var.instance_profile_path
+  #   role_path                 = var.role_path
+  #   role_permissions_boundary = var.role_permissions_boundary
+
+  runner_iam_role_managed_policy_arns = var.runner_iam_role_managed_policy_arns
+
+  #   ghes_url        = var.ghes_url
+  #   ghes_ssl_verify = var.ghes_ssl_verify
+
+  kms_key_arn = var.kms_key_arn
+
+  log_level = var.log_level
+}
+
+resource "aws_security_group" "default_runner_group" {
+  name        = "allow_runner"
+  description = "Allow Outbound Runner Traffic"
+  vpc_id      = module.vpc.vpc_id
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
 }
 
 data "aws_iam_policy_document" "deny_unsecure_transport" {
@@ -82,82 +175,4 @@ resource "aws_sqs_queue" "queued_builds_dlq" {
   kms_data_key_reuse_period_seconds = var.queue_encryption.kms_data_key_reuse_period_seconds
   fifo_queue                        = var.fifo_build_queue
   tags                              = var.tags
-}
-
-module "ssm" {
-  source = "../../modules/ssm"
-
-  kms_key_arn = var.kms_key_arn
-  prefix      = var.prefix
-  github_app  = var.github_app
-  tags        = local.tags
-}
-
-module "webhook" {
-  source = "../../modules/webhook"
-
-  aws_region                = var.aws_region
-  prefix                    = var.prefix
-  tags                      = local.tags
-  kms_key_arn               = var.kms_key_arn
-  sqs_build_queue           = aws_sqs_queue.queued_builds
-  sqs_build_queue_fifo      = var.fifo_build_queue
-  github_app_webhook_secret = module.ssm.parameters.github_app_webhook_secret
-
-  webhook_lambda_apigateway_access_log_settings = var.webhook_lambda_apigateway_access_log_settings
-  lambda_runtime                                = var.lambda_runtime
-  lambda_architecture                           = var.lambda_architecture
-  lambda_zip                                    = var.webhook_lambda_zip
-  lambda_timeout                                = var.webhook_lambda_timeout
-  logging_retention_in_days                     = var.logging_retention_in_days
-  logging_kms_key_id                            = var.logging_kms_key_id
-
-  # labels
-  #   enable_workflow_job_labels_check = var.runner_enable_workflow_job_labels_check
-  #   workflow_job_labels_check_all    = var.runner_enable_workflow_job_labels_check_all
-  #  runner_labels                    = var.runner_extra_labels != "" ? "${local.default_runner_labels},${var.runner_extra_labels}" : local.default_runner_labels
-
-  role_path                 = var.role_path
-  role_permissions_boundary = var.role_permissions_boundary
-  repository_white_list     = var.repository_white_list
-
-  log_level = var.log_level
-}
-
-module "runners" {
-  source = "../../modules/runner"
-
-  aws_region                = var.aws_region
-  vpc_id                    = var.vpc_id
-  subnet_ids                = var.subnet_ids
-  prefix                    = var.prefix
-  tags                      = local.tags
-  lambda_runtime            = var.lambda_runtime
-  lambda_architecture       = var.lambda_architecture
-  lambda_zip                = var.runners_lambda_zip
-  lambda_timeout_scale_up   = var.runners_scale_up_lambda_timeout
-  lambda_subnet_ids         = var.lambda_subnet_ids
-  lambda_security_group_ids = var.lambda_security_group_ids
-  logging_retention_in_days = var.logging_retention_in_days
-  logging_kms_key_id        = var.logging_kms_key_id
-
-  sqs_build_queue             = aws_sqs_queue.queued_builds
-  github_app_parameters       = local.github_app_parameters
-  enable_organization_runners = var.enable_organization_runners
-  ecs_family_prefix           = var.ecs_family_prefix
-  ecs_security_groups         = var.ecs_security_groups
-  secret_ttl                  = var.secret_ttl
-
-  #   instance_profile_path     = var.instance_profile_path
-  #   role_path                 = var.role_path
-  #   role_permissions_boundary = var.role_permissions_boundary
-
-  runner_iam_role_managed_policy_arns = var.runner_iam_role_managed_policy_arns
-
-  #   ghes_url        = var.ghes_url
-  #   ghes_ssl_verify = var.ghes_ssl_verify
-
-  kms_key_arn = var.kms_key_arn
-
-  log_level = var.log_level
 }
