@@ -1,8 +1,3 @@
-variable "aws_region" {
-  description = "AWS region."
-  type        = string
-}
-
 variable "prefix" {
   description = "The prefix used for naming resources"
   type        = string
@@ -67,21 +62,6 @@ variable "logging_kms_key_id" {
   default     = null
 }
 
-variable "lambda_s3_bucket" {
-  description = "S3 bucket from which to specify lambda functions. This is an alternative to providing local files directly."
-  default     = null
-}
-
-variable "webhook_lambda_s3_key" {
-  description = "S3 key for webhook lambda function. Required if using S3 bucket to specify lambdas."
-  default     = null
-}
-
-variable "webhook_lambda_s3_object_version" {
-  description = "S3 object version for webhook lambda function. Useful if S3 versioning is enabled on source bucket."
-  default     = null
-}
-
 variable "webhook_lambda_apigateway_access_log_settings" {
   description = "Access log settings for webhook API gateway."
   type = object({
@@ -91,34 +71,10 @@ variable "webhook_lambda_apigateway_access_log_settings" {
   default = null
 }
 
-variable "repository_white_list" {
-  description = "List of repositories allowed to use the github app"
-  type        = list(string)
-  default     = []
-}
-
 variable "kms_key_arn" {
   description = "Optional CMK Key ARN to be used for Parameter Store."
   type        = string
   default     = null
-}
-
-variable "runner_labels" {
-  description = "Extra (custom) labels for the runners (GitHub). Separate each label by a comma. Labels checks on the webhook can be enforced by setting `enable_workflow_job_labels_check`. GitHub read-only labels should not be provided."
-  type        = string
-  default     = ""
-}
-
-variable "enable_workflow_job_labels_check" {
-  description = "If set to true all labels in the workflow job even are matched against the custom labels and GitHub labels (os, architecture and `self-hosted`). When the labels are not matching the event is dropped at the webhook."
-  type        = bool
-  default     = false
-}
-
-variable "workflow_job_labels_check_all" {
-  description = "If set to true all labels in the workflow job must match the GitHub labels (os, architecture and `self-hosted`). When false if __any__ label matches it will trigger the webhook. `enable_workflow_job_labels_check` must be true for this to take effect."
-  type        = bool
-  default     = true
 }
 
 variable "log_level" {
@@ -135,18 +91,6 @@ variable "log_level" {
     ])
     error_message = "`log_level` value not valid. Valid values are 'trace', 'debug', 'info', 'warn', 'error'."
   }
-}
-
-variable "disable_check_wokflow_job_labels" {
-  description = "Disable the check of workflow labels."
-  type        = bool
-  default     = false
-}
-
-variable "sqs_build_queue_fifo" {
-  description = "Enable a FIFO queue to remain the order of events received by the webhook. Suggest to set to true for repo level runners."
-  type        = bool
-  default     = false
 }
 
 variable "lambda_runtime" {

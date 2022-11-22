@@ -39,7 +39,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         uses: docker/build-push-action@v3
         with:
-          context: images/ubuntu-jammy/
+          context: images/ubuntu/
           push: true
           platforms: 'linux/amd64,linux/arm64'
           tags: ${{ env.ECR_REGISTRY }}/gh-agent/ubuntu:${{ github.sha }}, ${{ env.ECR_REGISTRY }}/gh-agent/ubuntu:latest

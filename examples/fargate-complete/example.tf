@@ -23,13 +23,11 @@ module "ssm" {
 # Creates the webhook that queues workflow events
 module "webhook" {
   source = "../../modules/webhook"
-
-  aws_region                = var.aws_region
+  
   prefix                    = var.prefix
   tags                      = local.tags
   kms_key_arn               = var.kms_key_arn
   sqs_build_queue           = aws_sqs_queue.queued_builds
-  sqs_build_queue_fifo      = var.fifo_build_queue
   github_app_webhook_secret = module.ssm.parameters.github_app_webhook_secret
 
   webhook_lambda_apigateway_access_log_settings = var.webhook_lambda_apigateway_access_log_settings
@@ -39,15 +37,8 @@ module "webhook" {
   lambda_timeout                                = var.webhook_lambda_timeout
   logging_retention_in_days                     = var.logging_retention_in_days
   logging_kms_key_id                            = var.logging_kms_key_id
-
-  # labels
-  #   enable_workflow_job_labels_check = var.runner_enable_workflow_job_labels_check
-  #   workflow_job_labels_check_all    = var.runner_enable_workflow_job_labels_check_all
-  #  runner_labels                    = var.runner_extra_labels != "" ? "${local.default_runner_labels},${var.runner_extra_labels}" : local.default_runner_labels
-
   role_path                 = var.role_path
   role_permissions_boundary = var.role_permissions_boundary
-  repository_white_list     = var.repository_white_list
 
   log_level = var.log_level
 }
@@ -80,14 +71,8 @@ module "runners" {
   ecs_security_groups         = [aws_security_group.default_runner_group.id]
   secret_ttl                  = var.secret_ttl
 
-  #   instance_profile_path     = var.instance_profile_path
-  #   role_path                 = var.role_path
-  #   role_permissions_boundary = var.role_permissions_boundary
-
-  runner_iam_role_managed_policy_arns = var.runner_iam_role_managed_policy_arns
-
-  #   ghes_url        = var.ghes_url
-  #   ghes_ssl_verify = var.ghes_ssl_verify
+  role_path                 = var.role_path
+  role_permissions_boundary = var.role_permissions_boundary
 
   kms_key_arn = var.kms_key_arn
 

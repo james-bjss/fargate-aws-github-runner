@@ -46,6 +46,7 @@ variable "scale_up_reserved_concurrent_executions" {
 variable "webhook_lambda_zip" {
   description = "File location of the webhook lambda zip file."
   type        = string
+  default     = "../../lambda/webhook/dist/webhook.zip"
 }
 
 variable "webhook_lambda_timeout" {
@@ -63,6 +64,7 @@ variable "runners_scale_up_lambda_timeout" {
 variable "runners_lambda_zip" {
   description = "File location of the lambda zip file for scaling runners."
   type        = string
+  default     = "../../lambda/webhook/dist/webhook.zip"
 }
 
 variable "role_permissions_boundary" {
@@ -114,18 +116,6 @@ variable "webhook_lambda_apigateway_access_log_settings" {
   default = null
 }
 
-variable "runner_iam_role_managed_policy_arns" {
-  description = "Attach AWS or customer-managed IAM policies (by ARN) to the runner IAM role"
-  type        = list(string)
-  default     = []
-}
-
-variable "cloudwatch_config" {
-  description = "(optional) Replaces the module default cloudwatch log config. See https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html for details."
-  type        = string
-  default     = null
-}
-
 variable "runner_log_files" {
   description = "(optional) Replaces the module default cloudwatch log config. See https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html for details."
   type = list(object({
@@ -164,12 +154,6 @@ variable "instance_types" {
   description = "List of instance types for the action runner. Defaults are based on runner_os (amzn2 for linux and Windows Server Core for win)."
   type        = list(string)
   default     = ["m5.large", "c5.large"]
-}
-
-variable "repository_white_list" {
-  description = "List of repositories allowed to use the github app"
-  type        = list(string)
-  default     = []
 }
 
 variable "delay_webhook_event" {
@@ -236,12 +220,6 @@ variable "pool_lambda_timeout" {
   default     = 60
 }
 
-variable "pool_runner_owner" {
-  description = "The pool will deploy runners to the GitHub org ID, set this value to the org to which you want the runners deployed. Repo level is not supported."
-  type        = string
-  default     = null
-}
-
 variable "pool_lambda_reserved_concurrent_executions" {
   description = "Amount of reserved concurrent executions for the scale-up lambda function. A value of 0 disables lambda from being triggered and -1 removes any concurrency limitations."
   type        = number
@@ -252,12 +230,6 @@ variable "aws_partition" {
   description = "(optiona) partition in the arn namespace to use if not 'aws'"
   type        = string
   default     = "aws"
-}
-
-variable "disable_runner_autoupdate" {
-  description = "Disable the auto update of the github runner agent. Be-aware there is a grace period of 30 days, see also the [GitHub article](https://github.blog/changelog/2022-02-01-github-actions-self-hosted-runners-can-now-disable-automatic-updates/)"
-  type        = bool
-  default     = true
 }
 
 variable "lambda_runtime" {

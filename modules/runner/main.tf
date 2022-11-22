@@ -35,16 +35,14 @@ resource "aws_lambda_function" "runner" {
       GH_RUNNER_KEY_PATH  = var.runner_token_path
 
 
-      USE_ORG_RUNNERS = var.enable_organization_runners
-      ENVIRONMENT     = var.prefix
-      GHES_URL        = var.ghes_url
-      LOG_LEVEL       = var.log_level
+      USE_ORG_RUNNERS      = var.enable_organization_runners
+      ENVIRONMENT          = var.prefix
+      GHES_URL             = var.ghes_url
+      LOG_LEVEL            = var.log_level
       GH_APP_ID_PATH       = var.github_app_parameters.id.name
-      GH_APP_KEY_PATH = var.github_app_parameters.key_base64.name
-      // Maybe implement? RUNNER_GROUP_NAME                    = var.runner_group_name
-      // Maybe implement? RUNNERS_MAXIMUM_COUNT                = var.runners_maximum_count
-      // Good idea NODE_TLS_REJECT_UNAUTHORIZED         = var.ghes_url != null && !var.ghes_ssl_verify ? 0 : 1
-      SUBNET_IDS = join(",", var.subnet_ids)
+      GH_APP_KEY_PATH      = var.github_app_parameters.key_base64.name
+      GH_RUNNER_GROUP_NAME = var.runner_group_name
+      SUBNET_IDS           = join(",", var.subnet_ids)
     }
   }
 
@@ -89,7 +87,7 @@ resource "aws_iam_role" "runner" {
 resource "aws_iam_role_policy" "runner" {
   name = "${var.prefix}-lambda-runner-policy"
   role = aws_iam_role.runner.name
-  policy = templatefile("${path.module}/policies/lambda-scale-up.json", {
+  policy = templatefile("${path.module}/policies/lambda-runner.json", {
     //TODO: Family Prefix
     region                    = var.aws_region
     account_id                = var.aws_account_id
@@ -110,10 +108,4 @@ resource "aws_iam_role_policy" "runner_logging" {
   policy = templatefile("${path.module}/policies/lambda-cloudwatch.json", {
     log_group_arn = aws_cloudwatch_log_group.runner.arn
   })
-}
-
-resource "aws_iam_role_policy_attachment" "scale_up_vpc_execution_role" {
-  count      = length(var.lambda_subnet_ids) > 0 ? 1 : 0
-  role       = aws_iam_role.runner.name
-  policy_arn = "arn:${var.aws_partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
