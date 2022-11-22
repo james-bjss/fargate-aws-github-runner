@@ -15,7 +15,7 @@ const config = {
   runnerSSMTokenPath: process.env.GH_RUNNER_KEY_PATH || '/gh_actions/token/',
 
   // GH App config
-  ghAppId: parseInt(process.env.GH_APP_ID || ''),
+  ghAppIdKeyPath: process.env.GH_APP_ID_PATH || '',
   ghAppKeyPath: process.env.GH_APP_KEY_PATH || '',
   useOrgRunner: process.env.USE_ORG_RUNNERS?.toLowerCase() == 'true',
 };

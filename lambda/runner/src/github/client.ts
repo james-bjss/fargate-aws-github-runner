@@ -1,18 +1,19 @@
 import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/rest';
-import config from '../runner/config';
 
 export const createRunnerToken = async (
   cert: string,
+  appId: number,
   isOrgInstallation: boolean,
   request: ActionRequestMessage
 ) => {
   const installationId = await getAppInstallationId(
     cert,
+    appId,
     isOrgInstallation,
     request
   );
-  const oktoKit = await getAppClient(cert, installationId);
+  const oktoKit = await getAppClient(cert, appId, installationId);
 
   const tokenReponse = isOrgInstallation
     ? await oktoKit.actions.createRegistrationTokenForOrg({
@@ -27,10 +28,11 @@ export const createRunnerToken = async (
 
 const getAppInstallationId = async (
   cert: string,
+  appId: number,
   isOrgInstallation: boolean,
   request: ActionRequestMessage
 ) => {
-  const oktoKit = await getAppClient(cert);
+  const oktoKit = await getAppClient(cert, appId);
 
   return isOrgInstallation
     ? (
@@ -48,13 +50,14 @@ const getAppInstallationId = async (
 
 const getAppClient = async (
   cert: string,
+  appId: number,
   installationId: number | undefined = undefined
 ) => {
   const buffer = Buffer.from(cert, 'base64');
   const privateKey = buffer.toString();
 
   const authConfig = {
-    appId: config.ghAppId,
+    appId: appId,
     privateKey: privateKey,
   };
 

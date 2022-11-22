@@ -14,9 +14,9 @@ jest.mock('../github/client');
 describe('SQS Event', () => {
   beforeAll(() => {
     const mockSSMClient = mocked(CachingSSMClient);
-    mockSSMClient.prototype.getSecretValue.mockImplementationOnce(
-      async () => 'somevalue'
-    );
+    mockSSMClient.prototype.getSecretValue
+      .mockImplementationOnce(async () => 'somevalue')
+      .mockImplementationOnce(async () => '123');
   });
 
   beforeEach(() => {

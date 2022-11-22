@@ -68,7 +68,7 @@ describe('Github Client', () => {
       .once()
       .reply(200, runnerToken);
 
-    expect(await createRunnerToken(privateKeyB64, false, request)).toBe(
+    expect(await createRunnerToken(privateKeyB64, 123, false, request)).toBe(
       runnerToken.token
     );
   });
@@ -91,9 +91,7 @@ describe('Github Client', () => {
 
     //Mock repository auth flow
     nock('https://api.github.com')
-      .get(
-        `/orgs/${request.repositoryOwner}/installation`
-      )
+      .get(`/orgs/${request.repositoryOwner}/installation`)
       .once()
       .reply(200, { id: 123 })
       .post('/app/installations/123/access_tokens')
@@ -105,7 +103,7 @@ describe('Github Client', () => {
       .once()
       .reply(200, runnerToken);
 
-    expect(await createRunnerToken(privateKeyB64, true, request)).toBe(
+    expect(await createRunnerToken(privateKeyB64, 123, true, request)).toBe(
       runnerToken.token
     );
   });

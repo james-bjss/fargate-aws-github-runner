@@ -39,7 +39,7 @@ resource "aws_lambda_function" "runner" {
       ENVIRONMENT     = var.prefix
       GHES_URL        = var.ghes_url
       LOG_LEVEL       = var.log_level
-      GH_APP_ID       = var.github_app_parameters.id.value
+      GH_APP_ID_PATH       = var.github_app_parameters.id.name
       GH_APP_KEY_PATH = var.github_app_parameters.key_base64.name
       // Maybe implement? RUNNER_GROUP_NAME                    = var.runner_group_name
       // Maybe implement? RUNNERS_MAXIMUM_COUNT                = var.runners_maximum_count

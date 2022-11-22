@@ -50,8 +50,12 @@ export const processEvent = async (
 
       // Grab GH Cert generate registration token and create Runner
       const ghCert = await ssmClient.getSecretValue(config.ghAppKeyPath);
+      const appId = parseInt(
+        await ssmClient.getSecretValue(config.ghAppIdKeyPath)
+      );
       const token = await createRunnerToken(
         ghCert,
+        appId,
         config.useOrgRunner,
         payload
       );
