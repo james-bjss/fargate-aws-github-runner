@@ -119,7 +119,7 @@ npm run lambda:zip
 ```
 
 ## Deploy AWS Resources
-A demo is provided (here)["https://github.com/james-bjss/fargate-aws-github-runner/blob/develop/examples/fargate-complete/example.tf"]
+A demo is provided [here](https://github.com/james-bjss/fargate-aws-github-runner/blob/develop/examples/fargate-complete/example.tf)
 
 ## Configuring Webhooks
 Webhooks can be configured in 2 ways.
