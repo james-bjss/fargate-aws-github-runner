@@ -22,7 +22,7 @@ export const processEvent = async (
 
   // Should never happen
   if (event.Records.length < 1) {
-    logger.debug('Received event.records has 0 records');
+    logger.warn('Received event.records has 0 records');
     return { batchItemFailures: [] };
   }
 
