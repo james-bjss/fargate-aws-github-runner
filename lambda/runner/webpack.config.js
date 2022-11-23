@@ -43,4 +43,11 @@ module.exports = {
   },
   mode: 'production',
   devtool: 'source-map',
+  ignoreWarnings: [
+    {
+      module: /@aws-sdk/,
+      message: /aws-crt/,
+    },
+    (warning) => true,
+  ],
 };
