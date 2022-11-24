@@ -9,9 +9,10 @@
     "build": "webpack --progress",
     "pretty-quick": "pretty-quick",
     "zip:lambda": "cd dist/ && zip runner.zip index.js index.js.map",
-    "prepare": "cd ../../ && husky install && chmod ug+x .husky/*",
-    "prettier-all": "npx prettier --write .",
-    "lint": "eslint src/**/*.ts --fix"
+    "prettier": "npx prettier --check .",
+    "prettier:fix": "npx prettier --write .",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "lint": "eslint src/**/*.ts"
   },
   "repository": {
     "type": "git",

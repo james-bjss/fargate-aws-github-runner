@@ -1,5 +1,7 @@
+# Demo ECS Cluster where runner Tasks will be deployed
 module "ecs" {
-  source = "terraform-aws-modules/ecs/aws"
+  source  = "terraform-aws-modules/ecs/aws"
+  version = "4.1.2"
 
   cluster_name = "ecs-fargate"
 
@@ -21,11 +23,12 @@ module "ecs" {
   }
 }
 
-
+# Repository Where Runner container  image is stored
 data "aws_ecr_repository" "linux_agent" {
   name = "gh-agent/ubuntu"
 }
 
+# Task definition for Runner Tasks - Linux/Ubuntu
 resource "aws_ecs_task_definition" "service" {
   family = "gh_linux"
   container_definitions = jsonencode([
@@ -43,7 +46,7 @@ resource "aws_ecs_task_definition" "service" {
         logDriver : "awslogs",
         options : {
           awslogs-group : aws_cloudwatch_log_group.ecs_runner.name,
-          awslogs-region : local.region,
+          awslogs-region : local.aws_region,
           awslogs-create-group : "true",
           awslogs-stream-prefix : "ecs"
         }
@@ -60,6 +63,7 @@ resource "aws_ecs_task_definition" "service" {
   }
 }
 
+# Cloudwatch group for runner logs
 resource "aws_cloudwatch_log_group" "ecs_runner" {
   name              = "/ecs/gh_runner/gh_runner"
   retention_in_days = 1
@@ -83,6 +87,7 @@ resource "aws_iam_role" "ecs_execution_role" {
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 }
 
+# Role to allow ECS Tasks to log to cloudwatch
 resource "aws_iam_role_policy" "execution_role_logging" {
   name = "${var.prefix}-ecs-logging"
   role = aws_iam_role.ecs_execution_role.name
@@ -94,7 +99,7 @@ resource "aws_iam_role_policy" "execution_role_logging" {
 # Standard policy for pulling from ECR
 resource "aws_iam_role_policy_attachment" "ecs_execution_role" {
   role       = aws_iam_role.ecs_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  policy_arn = "arn:${local.aws_partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 
@@ -104,10 +109,11 @@ resource "aws_iam_role" "ecs_task_role" {
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 }
 
+# Role granting task access to runner registration tokens in SSM
 resource "aws_iam_role_policy" "runner_task_ssm" {
   role = aws_iam_role.ecs_task_role.name
   policy = templatefile("policies/ecs-task-ssm.json", {
-    region                = local.region
+    region                = local.aws_region
     account_id            = local.account_id
     runner_token_ssm_path = var.runner_token_path
   })

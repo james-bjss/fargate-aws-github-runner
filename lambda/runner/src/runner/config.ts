@@ -18,6 +18,7 @@ const config = {
   ghAppIdKeyPath: process.env.GH_APP_ID_PATH || '',
   ghAppKeyPath: process.env.GH_APP_KEY_PATH || '',
   useOrgRunner: process.env.USE_ORG_RUNNERS?.toLowerCase() == 'true',
+  runnerGroup: process.env.GH_RUNNER_GROUP_NAME || 'Default',
 };
 
 export default config;

@@ -73,6 +73,7 @@ export const processEvent = async (
         organization: payload.repositoryOwner,
         labels: payload.labels,
         isOrgRunner: config.useOrgRunner,
+        runnerGroup: config.runnerGroup,
         repositoryName: payload.repositoryName,
       };
 

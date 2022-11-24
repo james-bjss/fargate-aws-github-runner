@@ -1,8 +1,3 @@
-variable "aws_region" {
-  description = "AWS region."
-  type        = string
-}
-
 variable "tags" {
   description = "Map of tags that will be added to created resources. By default resources will be tagged with name and environment."
   type        = map(string)
@@ -15,7 +10,7 @@ variable "prefix" {
   default     = "github-actions"
 }
 
-# Runner Lambda Config
+### Runner lambda config
 variable "enable_organization_runners" {
   description = "Register runners to an organization, instead of an individual repo"
   type        = bool
@@ -35,12 +30,6 @@ variable "runner_group_name" {
   description = "Name of the runner group."
   type        = string
   default     = "Default"
-}
-
-variable "scale_up_reserved_concurrent_executions" {
-  description = "Amount of reserved concurrent executions for the scale-up lambda function. A value of 0 disables lambda from being triggered and -1 removes any concurrency limitations."
-  type        = number
-  default     = 1
 }
 
 variable "webhook_lambda_zip" {
@@ -97,33 +86,11 @@ variable "logging_kms_key_id" {
   default     = null
 }
 
-variable "runner_allow_prerelease_binaries" {
-  description = "(Deprecated, no longer used), allow the runners to update to prerelease binaries."
-  type        = bool
-  default     = null
-
-  validation {
-    condition     = var.runner_allow_prerelease_binaries == null
-    error_message = "The \"runner_allow_prerelease_binaries\" variable is no longer used. GitHub runners are not released as pre-release, only releases should be used."
-  }
-}
-
 variable "webhook_lambda_apigateway_access_log_settings" {
   type = object({
     destination_arn = string
     format          = string
   })
-  default = null
-}
-
-variable "runner_log_files" {
-  description = "(optional) Replaces the module default cloudwatch log config. See https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html for details."
-  type = list(object({
-    log_group_name   = string
-    prefix_log_group = bool
-    file_path        = string
-    log_stream_name  = string
-  }))
   default = null
 }
 
@@ -137,23 +104,6 @@ variable "lambda_security_group_ids" {
   description = "List of security group IDs associated with the Lambda function."
   type        = list(string)
   default     = []
-}
-
-variable "instance_type" {
-  description = "[DEPRECATED] See instance_types."
-  type        = string
-  default     = null
-
-  validation {
-    condition     = anytrue([var.instance_type == null])
-    error_message = "Deprecated, replaced by `instance_types`."
-  }
-}
-
-variable "instance_types" {
-  description = "List of instance types for the action runner. Defaults are based on runner_os (amzn2 for linux and Windows Server Core for win)."
-  type        = list(string)
-  default     = ["m5.large", "c5.large"]
 }
 
 variable "delay_webhook_event" {
@@ -183,17 +133,8 @@ variable "log_level" {
   }
 }
 
-variable "lambda_principals" {
-  description = "(Optional) add extra principals to the role created for execution of the lambda, e.g. for local testing."
-  type = list(object({
-    type        = string
-    identifiers = list(string)
-  }))
-  default = []
-}
-
 variable "fifo_build_queue" {
-  description = "Enable a FIFO queue to remain the order of events received by the webhook. Suggest to set to true for repo level runners."
+  description = "Enable a FIFO queue to retain the order of events received by the webhook. Suggest to set to true for repo level runners."
   type        = bool
   default     = false
 }
@@ -214,24 +155,6 @@ variable "redrive_build_queue" {
   }
 }
 
-variable "pool_lambda_timeout" {
-  description = "Time out for the pool lambda in seconds."
-  type        = number
-  default     = 60
-}
-
-variable "pool_lambda_reserved_concurrent_executions" {
-  description = "Amount of reserved concurrent executions for the scale-up lambda function. A value of 0 disables lambda from being triggered and -1 removes any concurrency limitations."
-  type        = number
-  default     = 1
-}
-
-variable "aws_partition" {
-  description = "(optiona) partition in the arn namespace to use if not 'aws'"
-  type        = string
-  default     = "aws"
-}
-
 variable "lambda_runtime" {
   description = "AWS Lambda runtime."
   type        = string
@@ -245,26 +168,6 @@ variable "lambda_architecture" {
   validation {
     condition     = contains(["arm64", "x86_64"], var.lambda_architecture)
     error_message = "`lambda_architecture` value is not valid, valid values are: `arm64` and `x86_64`."
-  }
-}
-
-variable "enable_workflow_job_events_queue" {
-  description = "Enabling this experimental feature will create a secondary sqs queue to wich a copy of the workflow_job event will be delivered."
-  type        = bool
-  default     = false
-}
-
-variable "workflow_job_queue_configuration" {
-  description = "Configuration options for workflow job queue which is only applicable if the flag enable_workflow_job_events_queue is set to true."
-  type = object({
-    delay_seconds              = number
-    visibility_timeout_seconds = number
-    message_retention_seconds  = number
-  })
-  default = {
-    "delay_seconds" : null,
-    "visibility_timeout_seconds" : null,
-    "message_retention_seconds" : null
   }
 }
 
@@ -298,7 +201,7 @@ variable "secret_ttl" {
 }
 
 variable "runner_token_path" {
-  description = "Path in SSM to store runner tokens"
+  description = "Path in SSM to store runner registration tokens"
   type        = string
   default     = "/actions_runner/tokens/"
   validation {

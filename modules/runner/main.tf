@@ -19,7 +19,7 @@ resource "aws_lambda_function" "runner" {
   handler                        = "index.handler"
   runtime                        = var.lambda_runtime
   timeout                        = var.lambda_timeout_scale_up
-  reserved_concurrent_executions = var.scale_up_reserved_concurrent_executions
+  reserved_concurrent_executions = var.reserved_concurrent_executions
   memory_size                    = 256
   tags                           = local.tags
   architectures                  = [var.lambda_architecture]
@@ -88,9 +88,9 @@ resource "aws_iam_role_policy" "runner" {
   name = "${var.prefix}-lambda-runner-policy"
   role = aws_iam_role.runner.name
   policy = templatefile("${path.module}/policies/lambda-runner.json", {
-    //TODO: Family Prefix
     region                    = var.aws_region
     account_id                = var.aws_account_id
+    aws_partition             = var.aws_partition
     ecs_cluster_arn           = var.ecs_cluster_arn
     ecs_family_prefix         = var.ecs_family_prefix
     arn_runner_instance_role  = aws_iam_role.runner.arn

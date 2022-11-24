@@ -125,6 +125,7 @@ describe('ECS', () => {
         organization: 'blah',
         labels: ['self-hosted'],
         isOrgRunner: false,
+        runnerGroup: 'Default',
         repositoryName: 'blah',
       }
     );
@@ -144,6 +145,7 @@ describe('ECS', () => {
           organization: 'blah',
           labels: ['self-hosted'],
           isOrgRunner: false,
+          runnerGroup: 'Default',
           repositoryName: 'blah',
         }
       )

@@ -1,0 +1,33 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+## Format TF
+echo "Formatting TF..."
+terraform fmt --recursive "$(pwd)/examples"
+terraform fmt --recursive "$(pwd)/modules/"
+
+## Lint Examples
+tflint "$(pwd)/examples/"
+
+## Generate LInt and Generate TF Module Docs
+for dir in $(pwd)/modules/*/; do
+    module=${dir%/}
+    module=${module##*/}
+    
+    echo "Linting module ${module}"
+    tflint "$(pwd)/modules/${module}/"
+    
+    echo "Generating module docs for ${module}"
+    docker run --rm --volume "$(pwd)/modules/${module}:/terraform-docs" -u $(id -u) quay.io/terraform-docs/terraform-docs:0.16.0 markdown /terraform-docs > $(pwd)/modules/${module}/README.md    
+done
+
+git add $(pwd)/modules/**/README.md
+
+# Check ESLint Standards
+# npm run lint-staged ||
+# (
+#         echo '😤🏀👋😤 Linting failed. Make the required changes listed above, add changes and try to commit again.'
+#         false; 
+# )
+
+echo '✅✅✅✅ Husky pre-commit checks successful, committing now... '

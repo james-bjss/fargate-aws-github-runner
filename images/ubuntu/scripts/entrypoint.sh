@@ -13,8 +13,9 @@ if [ -z "${ORGANIZATION}" ]; then
   exit 1
 fi
 
-# Fetch registration token
+# Fetch registration token and remove it from SSM after
 ACCESS_TOKEN=$(aws ssm get-parameter --name $RUNNER_TOKEN_PATH --with-decryption --output text --query Parameter.Value)
+aws ssm delete-parameter --name $RUNNER_TOKEN_PATH || true
 
 if [ -z "${ACCESS_TOKEN}" ]; then
   echo 1>&2 "error: missing ACCESS_TOKEN variable"
@@ -50,4 +51,3 @@ trap 'cleanup; exit 130' INT
 trap 'cleanup; exit 143' TERM
 
 ./run.sh & wait $!
-aws ssm delete-parameter --name $RUNNER_TOKEN_PATH || true

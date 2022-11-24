@@ -43,12 +43,13 @@ module "webhook" {
   log_level = var.log_level
 }
 
-# Create Runner Lambdas that handle queued messages and create ECS tasks
+# Create runner Lambda that handles queued messages and create ECS runner tasks
 module "runners" {
   source = "../../modules/runner"
 
-  aws_region                = var.aws_region
+  aws_region                = local.aws_region
   aws_account_id            = local.account_id
+  aws_partition             = local.aws_partition
   ecs_cluster_arn           = module.ecs.cluster_arn
   ecs_cluster_name          = module.ecs.cluster_name
   ecs_execution_role_arn    = aws_iam_role.ecs_execution_role.arn
@@ -67,6 +68,7 @@ module "runners" {
   sqs_build_queue             = aws_sqs_queue.queued_builds
   github_app_parameters       = local.github_app_parameters
   enable_organization_runners = var.enable_organization_runners
+  runner_group_name           = var.runner_group_name
   ecs_family_prefix           = var.ecs_family_prefix
   ecs_security_groups         = [aws_security_group.default_runner_group.id]
   secret_ttl                  = var.secret_ttl
@@ -79,6 +81,7 @@ module "runners" {
   log_level = var.log_level
 }
 
+# Security group applied to runner tasks
 resource "aws_security_group" "default_runner_group" {
   name        = "allow_runner"
   description = "Allow Outbound Runner Traffic"

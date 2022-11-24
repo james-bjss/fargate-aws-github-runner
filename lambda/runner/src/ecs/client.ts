@@ -112,6 +112,10 @@ export const startRunner = async (
               name: 'USE_ORG',
               value: runnerConfig.isOrgRunner ? 'true' : 'false',
             },
+            {
+              name: 'RUNNER_GROUP',
+              value: runnerConfig.runnerGroup,
+            },
           ],
         },
       ],
@@ -138,6 +142,7 @@ export type RunnerConfig = {
   tokenPath: string;
   organization: string;
   isOrgRunner: boolean;
+  runnerGroup: string;
   repositoryName: string;
   allowAutomaticUpdates: boolean;
   labels: string[];
