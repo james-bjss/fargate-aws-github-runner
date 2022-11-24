@@ -23,7 +23,7 @@ module "ssm" {
 # Creates the webhook that queues workflow events
 module "webhook" {
   source = "../../modules/webhook"
-  
+
   prefix                    = var.prefix
   tags                      = local.tags
   kms_key_arn               = var.kms_key_arn
@@ -37,8 +37,8 @@ module "webhook" {
   lambda_timeout                                = var.webhook_lambda_timeout
   logging_retention_in_days                     = var.logging_retention_in_days
   logging_kms_key_id                            = var.logging_kms_key_id
-  role_path                 = var.role_path
-  role_permissions_boundary = var.role_permissions_boundary
+  role_path                                     = var.role_path
+  role_permissions_boundary                     = var.role_permissions_boundary
 
   log_level = var.log_level
 }

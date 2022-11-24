@@ -26,14 +26,14 @@
                 "ecs:cluster" : "${ecs_cluster_arn}"
               }
             },
-            "Resource" : "arn:aws:ecs:${region}:${account_id}:task-definition/gh_*"
+            "Resource" : "arn:aws:ecs:${region}:${account_id}:task-definition/${ecs_family_prefix}*"
           },
           {
             "Effect" : "Allow",
             "Action" : [
-              "ecs:RunTask", "ecs:ListTagsForResource"
+              "ecs:ListTagsForResource"
             ],
-            "Resource" : "arn:aws:ecs:${region}:${account_id}:task-definition/gh_*"
+            "Resource" : "arn:aws:ecs:${region}:${account_id}:task-definition/${ecs_family_prefix}*"
           },
         {
             "Effect": "Allow",
