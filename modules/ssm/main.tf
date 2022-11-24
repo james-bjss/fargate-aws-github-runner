@@ -20,6 +20,10 @@ resource "aws_ssm_parameter" "github_app_id_ignore_changes" {
       value,
     ]
   }
+
+  depends_on = [
+    aws_ssm_parameter.github_app_id
+  ]
 }
 
 resource "aws_ssm_parameter" "github_app_key_base64" {
@@ -44,6 +48,9 @@ resource "aws_ssm_parameter" "github_app_key_base64_ignore_changes" {
       value,
     ]
   }
+  depends_on = [
+    aws_ssm_parameter.github_app_key_base64
+  ]
 }
 
 resource "aws_ssm_parameter" "github_app_webhook_secret" {
@@ -68,4 +75,7 @@ resource "aws_ssm_parameter" "github_app_webhook_secret_ignore_changes" {
       value,
     ]
   }
+  depends_on = [
+    aws_ssm_parameter.github_app_webhook_secret
+  ]
 }

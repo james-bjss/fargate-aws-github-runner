@@ -27,9 +27,9 @@ If you have other uses for this I would be interested to hear.
 * If you are looking for a VM based solution head over to: [Terraform AWS GitHub Runner](https://github.com/philips-labs/terraform-aws-github-runner)
 * Fargate does not support running container based jobs from within the runner. AFAIK Docker-In-Docker setups are not possible on Fargate.
 * Currently this has been built with Fargate in mind, but in theory this can just as easily work on ECS. I will look to testing and if necessary extending this for use on ECS. If you try it and it works please let me know.
-* Pulling images over a NAT Gateway can incurr a lot of transfer costs. PLease consider using an S3 Gateway Endpoint to avoid this. (See the example TF).
-* The containers currently run as non-root. If you rqeuire additional tooling to be installed it may be bake these into the container images at build time.
-* Fargate has a 20GB Limit on ephemeral storage. It may be possible to attach additional volumes; however this is not implemented currently. See: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-task-storage.html
+* Pulling images over a NAT Gateway can incur a lot of transfer costs. PLease consider using an S3 Gateway Endpoint to avoid this. (See the example TF).
+* The containers currently run as non-root. If you require additional tooling to be installed it may be bake these into the container images at build time.
+* Fargate has a 200GB Limit on ephemeral storage. It may be possible to attach additional volumes; however this is not implemented currently. See: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-task-storage.html
 * Pulling container images on Fargate is not the fastest of processes and it may take a minute for the runners to launch.
 
 ### Limits & Quotas
@@ -40,6 +40,7 @@ If you have other uses for this I would be interested to hear.
 * Currently this solution only supports Ad-Hoc creation of epehemeral Runners.
 * I have not added proxy or custom endpoint support yet, but this should be fairly trivial to add.
 * I don't have access to a GH enterprise so the Runners only operate on a Org or Repo currently.
+* Windows runners - Though this should be possible!
 
 # Solution Overview
 1. The solution utilises a GitHub App which installed in your GH account (see setup)
@@ -56,18 +57,19 @@ If you have other uses for this I would be interested to hear.
 # Setup
 
 ## Prerequisites
-Before proceeding you first need to decide if you want your Runners to be registered beneath each repository where the App is installed or if they are to be registered as an organisaiton Runner. You then need to decide if you would like to configure the webhook globally across all repos it is installed in, or if you would like to setup the webhook explicitly on each repository. The instructions will make clear the process for both options.
+Before proceeding you first need to decide if you want your Runners to be registered beneath each repository where the App is installed or if they are to be registered as an organization Runner. You then need to decide if you would like to configure the webhook globally across all repos it is installed in, or if you would like to setup the webhook explicitly on each repository. The instructions will make clear the process for both options.
 
 ## Creating a GitHub App
 1. Open the Developer Settings Page **Settings > Developer Settings**
 2. Click **Create New App** and complete the form as  follows:
 3. Name for this app. Use something self explanatory eg. "GH Fargate Runner"
 4. Enter a Description (optional)
-5. HomePage URL - This is just for infromational purposes and can be any URL. It is not used by the Runner.
+5. HomePage URL - This is just for informational purposes and can be any URL. It is not used by the Runner.
 6. Disable the webhook for now. We will configure this later if required.
 7. Navigate to the **Permission Tab** on the Left-hand side.
 8. Permissions for all runners:
     - Repository:
+      - `Actions`: Read-only
       - `Metadata`: Read-only (default/required)
 9. _Permissions for repo level runners only_:
    - Repository:
@@ -83,7 +85,7 @@ Before proceeding you first need to decide if you want your Runners to be regist
 This assumes you have Docker or compatible tooling for building container images. It also requires at least Node 16.x >
 The below assumes you have already created an ECR registry. If not, see the example terraform for reference on how to do this.
 
-NB. Currently the zip files and container images are not published, but I will endevour to get around to this.
+NB. Currently the zip files and container images are not published, but I will endeavour to get around to this.
 
 ### Runner Images
 
@@ -113,7 +115,7 @@ npm run lambda:zip
 cd ../webhook
 npm -i
 npm run build
-npm run lambda:zip
+npm run zip:lambda
 
 # The Zips should be output to the relevant lambda/dist directories
 ```

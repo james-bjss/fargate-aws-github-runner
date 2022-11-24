@@ -92,7 +92,7 @@ resource "aws_iam_role_policy" "runner" {
     region                    = var.aws_region
     account_id                = var.aws_account_id
     ecs_cluster_arn           = var.ecs_cluster_arn
-    ecs_family_prefix             = var.ecs_family_prefix
+    ecs_family_prefix         = var.ecs_family_prefix
     arn_runner_instance_role  = aws_iam_role.runner.arn
     ecs_execution_role_arn    = var.ecs_execution_role_arn
     sqs_arn                   = var.sqs_build_queue.arn
