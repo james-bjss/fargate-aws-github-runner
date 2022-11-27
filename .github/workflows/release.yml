@@ -67,4 +67,4 @@ jobs:
         run: |
           cp .release/* .
           npm install
-          npm release
+          npm run release
