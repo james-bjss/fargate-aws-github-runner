@@ -14,7 +14,7 @@ jobs:
     container: node:16
     strategy:
       matrix:
-        lambda: ["lambda/webhook", "lambdas/runner"]
+        lambda: ["lambda/webhook", "lambda/runner"]
     steps:
       - name: Extract lambda name
         id: lambda
