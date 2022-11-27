@@ -59,7 +59,7 @@ jobs:
         run: |
           cp .release/* .
           npm install
-          npm release -d
+          npm run release -d
       - name: Release
         if: github.event_name != 'pull_request' && contains('refs/heads/main', github.ref)
         env:
