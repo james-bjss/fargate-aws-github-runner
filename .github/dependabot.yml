@@ -24,4 +24,4 @@ updates:
     directory: "/.release"
     schedule:
       interval: "weekly"
-      
+ 
