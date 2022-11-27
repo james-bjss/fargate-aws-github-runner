@@ -14,14 +14,33 @@ updates:
     directory: "/lambda/webhook"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "fix"
+      prefix-development: "build"
+      include: "scope"
+    allow:
+      - dependency-type: "production"      
 
   - package-ecosystem: "npm"
     directory: "/lambda/runner"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "fix"
+      prefix-development: "build"
+      include: "scope"
+    allow:
+      - dependency-type: "production"      
+
 
   - package-ecosystem: "npm"
     directory: "/.release"
     schedule:
       interval: "weekly"
- 
+    commit-message:
+      prefix: "fix"
+      prefix-development: "build"
+      include: "scope"
+    allow:
+      - dependency-type: "production"      
+      
