@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="runner">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lambda/runner/dist/runner.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

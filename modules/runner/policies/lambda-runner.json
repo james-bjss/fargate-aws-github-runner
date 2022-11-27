@@ -1,0 +1,67 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect" : "Allow",
+            "Action" : ["ecs:ListTaskDefinitionFamilies", "ecs:ListTaskDefinitions"],
+            "Resource" : "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "iam:PassRole",
+            "Resource": ["${arn_runner_instance_role}", "${ecs_execution_role_arn}"]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:PutParameter"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect" : "Allow",
+            "Action" : "ecs:RunTask",
+            "Condition" : {
+              "ArnEquals" : {
+                "ecs:cluster" : "${ecs_cluster_arn}"
+              }
+            },
+            "Resource" : "arn:${aws_partition}:ecs:${region}:${account_id}:task-definition/${ecs_family_prefix}*"
+          },
+          {
+            "Effect" : "Allow",
+            "Action" : [
+              "ecs:ListTagsForResource"
+            ],
+            "Resource" : "arn:${aws_partition}:ecs:${region}:${account_id}:task-definition/${ecs_family_prefix}*"
+          },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:GetParameter"
+            ],
+            "Resource": [
+                "${github_app_key_base64_arn}",
+                "${github_app_id_arn}"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "sqs:ReceiveMessage",
+                "sqs:GetQueueAttributes",
+                "sqs:DeleteMessage"
+            ],
+            "Resource": "${sqs_arn}"
+%{ if kms_key_arn != "" ~}
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "kms:Decrypt"
+            ],
+            "Resource": "${kms_key_arn}"
+%{ endif ~}
+        }
+    ]
+}

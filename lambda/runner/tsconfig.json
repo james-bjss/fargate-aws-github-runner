@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "module": "NodeNext",
+    "target": "es2020",
+    "outDir": "./dist",
+    "strict": false,
+    "types": ["node", "jest"],
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "lib": ["ES2020.Promise"]
+  },
+  "include": ["src/**/*", "jest.config.ts"],
+  "exclude": ["node_modules"]
+}

@@ -22,6 +22,9 @@ lib-cov
 coverage
 *.lcov
 
+# Test reports
+test_reports
+
 # nyc test coverage
 .nyc_output
 
@@ -102,3 +105,8 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Terraform
+.terraform
+*.tfstate
+*.tfstate.backup
