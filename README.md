@@ -1,5 +1,5 @@
 # Fargate GitHub Runners
-![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
 
 :warning: This repository is a demonstration of running  GH runner on AWS ECS Fargate. Whilst it is functional I have not personally tested this at scale so please bare this in mind. I suggest before using this that you check out the Caveats section first. As usual feedback and improvements are welcome.
 
