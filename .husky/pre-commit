@@ -9,7 +9,7 @@ terraform fmt --recursive "$(pwd)/modules/"
 ## Lint Examples
 tflint "$(pwd)/examples/"
 
-## Generate LInt and Generate TF Module Docs
+## Generate Lint and Generate TF Module Docs
 for dir in $(pwd)/modules/*/; do
     module=${dir%/}
     module=${module##*/}
