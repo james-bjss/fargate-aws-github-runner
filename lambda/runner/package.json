@@ -53,7 +53,7 @@
   },
   "dependencies": {
     "@aws-lambda-powertools/logger": "^1.5.0",
-    "@aws-sdk/client-ecs": "^3.216.0",
+    "@aws-sdk/client-ecs": "^3.267.0",
     "@aws-sdk/client-ssm": "^3.216.0",
     "@octokit/app": "^13.0.11",
     "@octokit/auth-app": "^4.0.7",
