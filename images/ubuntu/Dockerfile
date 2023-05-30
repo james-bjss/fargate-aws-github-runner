@@ -1,4 +1,5 @@
 FROM --platform=$BUILDPLATFORM ubuntu:20.04
+LABEL description="GH Container Agent"
 
 # Set Timezone
 ENV TZ=UTC
